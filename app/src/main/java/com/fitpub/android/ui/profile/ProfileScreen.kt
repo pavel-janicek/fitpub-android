@@ -132,6 +132,7 @@ fun ProfileScreen(
     onOpenActivity: (String) -> Unit,
     onEditProfile: () -> Unit,
     onOpenSettings: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val vm: ProfileViewModel = viewModel(
         key = username,
@@ -158,7 +159,7 @@ fun ProfileScreen(
     }
 
     if (embedded) {
-        androidx.compose.foundation.layout.Box(Modifier.fillMaxSize()) { content(Modifier.fillMaxSize()) }
+        androidx.compose.foundation.layout.Box(modifier.fillMaxSize()) { content(Modifier.fillMaxSize()) }
     } else {
         Scaffold(
             topBar = {

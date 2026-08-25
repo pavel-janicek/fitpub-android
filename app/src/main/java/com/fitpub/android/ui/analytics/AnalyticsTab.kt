@@ -36,12 +36,13 @@ private val TABS = listOf("Overview", "Weekly", "Monthly")
 fun AnalyticsTabContent(
     container: AppContainer,
     unitSystem: String,
+    modifier: Modifier = Modifier,
 ) {
     val vm: AnalyticsViewModel = viewModel(factory = AnalyticsViewModel.factory(container))
     val ui by vm.ui.collectAsState()
     var tab by remember { mutableIntStateOf(0) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize()) {
         TabRow(selectedTabIndex = tab) {
             TABS.forEachIndexed { index, title ->
                 Tab(selected = tab == index, onClick = { tab = index }, text = { Text(title) })

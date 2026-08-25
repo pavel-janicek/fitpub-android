@@ -99,16 +99,19 @@ fun MainScaffold(
                 container = container,
                 serverUrl = sessionState.serverUrl,
                 onOpenProfile = onOpenProfile,
+                modifier = modifier,
             )
             Routes.BottomTab.ANALYTICS -> AnalyticsTabContent(
                 container = container,
                 unitSystem = unitSystem,
+                modifier = modifier,
             )
             Routes.BottomTab.NOTIFICATIONS -> NotificationsTabContent(
                 viewModel = notificationsVm,
                 container = container,
                 onOpenActivity = onOpenActivity,
                 onOpenProfile = onOpenProfile,
+                modifier = modifier,
             )
             Routes.BottomTab.ME_TAB -> ProfileScreen(
                 username = sessionState.username.ifBlank { "me" },
@@ -119,6 +122,7 @@ fun MainScaffold(
                 onOpenActivity = onOpenActivity,
                 onEditProfile = onOpenSettings,
                 onOpenSettings = onOpenSettings,
+                modifier = modifier,
             )
         }
     }

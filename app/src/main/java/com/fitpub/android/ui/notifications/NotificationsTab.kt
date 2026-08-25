@@ -38,10 +38,11 @@ fun NotificationsTabContent(
     container: AppContainer,
     onOpenActivity: (String) -> Unit,
     onOpenProfile: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val ui by viewModel.ui.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize()) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,

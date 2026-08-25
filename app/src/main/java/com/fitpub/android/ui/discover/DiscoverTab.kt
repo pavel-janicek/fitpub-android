@@ -35,11 +35,12 @@ fun DiscoverTabContent(
     container: AppContainer,
     serverUrl: String,
     onOpenProfile: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val vm: DiscoverViewModel = viewModel(factory = DiscoverViewModel.factory(container))
     val ui by vm.ui.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize()) {
         OutlinedTextField(
             value = ui.query,
             onValueChange = vm::onQueryChange,
