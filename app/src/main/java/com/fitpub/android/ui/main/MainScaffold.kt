@@ -1,5 +1,9 @@
 package com.fitpub.android.ui.main
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
@@ -9,10 +13,13 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,9 +27,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fitpub.android.AppContainer
 import com.fitpub.android.ui.AppViewModel
@@ -33,6 +43,7 @@ import com.fitpub.android.ui.notifications.NotificationsTabContent
 import com.fitpub.android.ui.notifications.NotificationsViewModel
 import com.fitpub.android.ui.profile.ProfileScreen
 import com.fitpub.android.ui.timeline.TimelineScreen
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,6 +53,7 @@ fun MainScaffold(
     onOpenActivity: (String) -> Unit,
     onOpenProfile: (String) -> Unit,
     onOpenCreate: () -> Unit,
+    onOpenEditProfile: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(Routes.BottomTab.TIMELINE.name) }
@@ -113,17 +125,31 @@ fun MainScaffold(
                 onOpenProfile = onOpenProfile,
                 modifier = modifier,
             )
-            Routes.BottomTab.ME_TAB -> ProfileScreen(
-                username = sessionState.username.ifBlank { "me" },
-                container = container,
-                appViewModel = appViewModel,
-                embedded = true,
-                onBack = {},
-                onOpenActivity = onOpenActivity,
-                onEditProfile = onOpenSettings,
-                onOpenSettings = onOpenSettings,
-                modifier = modifier,
-            )
+            Routes.BottomTab.ME_TAB -> if (!sessionState.loggedIn) {
+                val scope = rememberCoroutineScope()
+                GuestMePanel(
+                    serverUrl = sessionState.serverUrl,
+                    onSignIn = {
+                        scope.launch {
+                            // Clearing the guest flag switches to the auth flow.
+                            container.sessionStore.clearGuest()
+                        }
+                    },
+                    onOpenSettings = onOpenSettings,
+                )
+            } else {
+                ProfileScreen(
+                    username = sessionState.username.ifBlank { "me" },
+                    container = container,
+                    appViewModel = appViewModel,
+                    embedded = true,
+                    onBack = {},
+                    onOpenActivity = onOpenActivity,
+                    onEditProfile = onOpenEditProfile,
+                    onOpenSettings = onOpenSettings,
+                    modifier = modifier,
+                )
+            }
         }
     }
 }
