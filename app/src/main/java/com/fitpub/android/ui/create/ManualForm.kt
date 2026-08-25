@@ -2,7 +2,8 @@ package com.fitpub.android.ui.create
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
@@ -40,7 +41,11 @@ fun ManualForm(vm: CreateViewModel) {
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Activity type", style = MaterialTheme.typography.labelLarge)
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        @OptIn(ExperimentalLayoutApi::class)
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
             listOf("RUN", "RIDE", "HIKE", "WALK", "SWIM", "WORKOUT").forEach { t ->
                 FilterChip(
                     selected = type == t,

@@ -5,7 +5,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -57,7 +58,11 @@ fun UploadForm(ui: CreateViewModel.UiState, vm: CreateViewModel) {
         modifier = Modifier.fillMaxWidth().height(100.dp).padding(top = 8.dp),
     )
     Text("Visibility", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 12.dp))
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    @OptIn(ExperimentalLayoutApi::class)
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
         ActivityVisibilities.ALL.forEach { v ->
             FilterChip(selected = visibility == v, onClick = { visibility = v }, label = { Text(v.lowercase()) })
         }

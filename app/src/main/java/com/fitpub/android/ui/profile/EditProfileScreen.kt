@@ -2,7 +2,8 @@ package com.fitpub.android.ui.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -108,13 +109,21 @@ fun EditProfileScreen(
                 modifier = Modifier.fillMaxWidth().height(110.dp).padding(top = 8.dp),
             )
             Text("Profile visibility", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 14.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp)) {
+            @OptIn(ExperimentalLayoutApi::class)
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 ProfileVisibilities.ALL.forEach { v ->
                     FilterChip(selected = visibility == v, onClick = { visibility = v }, label = { Text(v.lowercase()) })
                 }
             }
             Text("Default timeline", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 14.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp)) {
+            @OptIn(ExperimentalLayoutApi::class)
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 DefaultTimelines.ALL.forEach { t ->
                     FilterChip(selected = timeline == t, onClick = { timeline = t }, label = { Text(t.lowercase()) })
                 }
