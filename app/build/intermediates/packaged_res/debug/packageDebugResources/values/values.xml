@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="ic_launcher_background">#1E6F3E</color>
-    <string name="app_name">FitPub</string>
-    <style name="Theme.FitPub" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">@android:color/white</item>
-        <item name="android:windowLightStatusBar">true</item>
-    </style>
-</resources>
