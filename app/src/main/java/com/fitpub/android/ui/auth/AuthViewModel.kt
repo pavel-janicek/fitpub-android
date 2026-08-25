@@ -8,12 +8,14 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.fitpub.android.AppContainer
 import com.fitpub.android.data.dto.RegisterRequest
 import com.fitpub.android.data.network.ApiResult
+import com.fitpub.android.data.session.SessionStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ServerSetupViewModel(
     private val auth: com.fitpub.android.data.repository.AuthRepository,
+    private val sessionStore: SessionStore,
 ) : ViewModel() {
 
     private val _busy = MutableStateFlow(false)
@@ -42,9 +44,17 @@ class ServerSetupViewModel(
         }
     }
 
+    /** Skips account setup: browse the official instance's public timeline as a guest. */
+    fun skip() {
+        viewModelScope.launch {
+            sessionStore.continueAsGuest()
+            _done.value = true
+        }
+    }
+
     companion object {
         fun factory(container: AppContainer) = viewModelFactory {
-            initializer { ServerSetupViewModel(container.authRepository) }
+            initializer { ServerSetupViewModel(container.authRepository, container.sessionStore) }
         }
     }
 }

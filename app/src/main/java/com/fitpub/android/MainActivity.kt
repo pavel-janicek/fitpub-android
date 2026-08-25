@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,7 +52,7 @@ class MainActivity : ComponentActivity() {
                             CircularProgressIndicator()
                         }
                         !state.configured -> ServerSetupRoute(container)
-                        !state.loggedIn -> AuthFlowRoute(container)
+                        !state.loggedIn && !state.guest -> AuthFlowRoute(container)
                         else -> MainAppRoute(container, appViewModel)
                     }
                 }
@@ -61,13 +62,26 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun ServerSetupRoute(container: AppContainer) {
+private fun ServerSetupRoute(
+    container: AppContainer,
+    initialUrl: String? = null,
+    allowSkip: Boolean = true,
+    onDone: () -> Unit = {},
+    onCancel: (() -> Unit)? = null,
+) {
     val vm: ServerSetupViewModel = viewModel(factory = ServerSetupViewModel.factory(container))
     val done by vm.done.collectAsState()
     val busy by vm.busy.collectAsState()
     val error by vm.error.collectAsState()
-    if (done) return
-    ServerSetupContent(busy = busy, hint = error, onSave = vm::connect)
+    LaunchedEffect(done) { if (done) onDone() }
+    ServerSetupContent(
+        busy = busy,
+        hint = error,
+        initialUrl = initialUrl,
+        onSave = vm::connect,
+        onSkip = if (allowSkip) ({ vm.skip() }) else null,
+        onCancel = onCancel,
+    )
 }
 @Composable
 private fun AuthFlowRoute(container: AppContainer) {
@@ -211,7 +225,17 @@ private fun FitPubNavGraph(
                 appViewModel = appViewModel,
                 onBack = { navController.popBackStack() },
                 onOpenPrivacyZones = { navController.navigate(Routes.PRIVACY_ZONES) },
-                onLoggedOut = { navController.navigate(Routes.LOGIN) { popUpTo(0) } },
+                onChangeInstance = { navController.navigate(Routes.SERVER_SETUP) },
+            )
+        }
+        composable(Routes.SERVER_SETUP) {
+            val st by appViewModel.uiState.collectAsState()
+            ServerSetupRoute(
+                container = container,
+                initialUrl = st.serverUrl.takeIf { it.isNotBlank() },
+                allowSkip = false,
+                onDone = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() },
             )
         }
         composable(Routes.PRIVACY_ZONES) {

@@ -42,9 +42,10 @@ fun SettingsScreen(
     appViewModel: AppViewModel,
     onBack: () -> Unit,
     onOpenPrivacyZones: () -> Unit,
-    onLoggedOut: () -> Unit,
+    onChangeInstance: () -> Unit,
 ) {
     val unitSystem by appViewModel.unitSystem.collectAsState()
+    val sessionState by appViewModel.uiState.collectAsState()
     var showChangePassword by rememberSaveable { mutableStateOf(false) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
 
@@ -87,6 +88,27 @@ fun SettingsScreen(
             }
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(14.dp)) {
+                    Text("Instance", style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        sessionState.serverUrl.ifBlank { "Not configured" },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                // Tokens are per-instance, so switching instances signs out.
+                                container.authRepository.logout()
+                                onChangeInstance()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    ) { Text("Change instance") }
+                }
+            }
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(14.dp)) {
                     Text("Privacy", style = MaterialTheme.typography.titleSmall)
                     OutlinedButton(
                         onClick = onOpenPrivacyZones,
@@ -97,19 +119,31 @@ fun SettingsScreen(
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text("Account", style = MaterialTheme.typography.titleSmall)
-                    OutlinedButton(
-                        onClick = { showChangePassword = true },
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    ) { Text("Change password") }
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                container.authRepository.logout()
-                                onLoggedOut()
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    ) { Text("Sign out") }
+                    if (sessionState.loggedIn) {
+                        OutlinedButton(
+                            onClick = { showChangePassword = true },
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        ) { Text("Change password") }
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    // Session state drives the UI back to the auth flow.
+                                    container.authRepository.logout()
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        ) { Text("Sign out") }
+                    } else {
+                        OutlinedButton(
+                            onClick = {
+                                scope.launch {
+                                    container.sessionStore.clearGuest()
+                                    // Guest flag cleared -> MainActivity shows the auth flow.
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        ) { Text("Sign in or create account") }
+                    }
                 }
             }
         }

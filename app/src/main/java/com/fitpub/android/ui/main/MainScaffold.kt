@@ -90,6 +90,7 @@ fun MainScaffold(
             Routes.BottomTab.TIMELINE -> TimelineScreen(
                 container = container,
                 unitSystem = unitSystem,
+                guestMode = sessionState.guest,
                 onOpenActivity = onOpenActivity,
                 onOpenProfile = onOpenProfile,
                 onOpenCreate = onOpenCreate,

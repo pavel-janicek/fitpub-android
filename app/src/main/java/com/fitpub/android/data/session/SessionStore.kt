@@ -3,6 +3,7 @@ package com.fitpub.android.data.session
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -20,6 +21,8 @@ data class Session(
     val username: String = "",
     val displayName: String = "",
     val email: String = "",
+    /** True when the user skipped login and is browsing the default instance anonymously. */
+    val guest: Boolean = false,
 ) {
     val isLoggedIn: Boolean get() = token.isNotBlank()
     val isConfigured: Boolean get() = serverUrl.isNotBlank()
@@ -40,6 +43,7 @@ class SessionStore(private val context: Context) {
         val USERNAME = stringPreferencesKey("username")
         val DISPLAY_NAME = stringPreferencesKey("display_name")
         val EMAIL = stringPreferencesKey("email")
+        val GUEST = booleanPreferencesKey("guest")
     }
 
     val session: Flow<Session> = context.fitPubDataStore.data.map { prefs ->
@@ -49,6 +53,7 @@ class SessionStore(private val context: Context) {
             username = prefs[Keys.USERNAME] ?: "",
             displayName = prefs[Keys.DISPLAY_NAME] ?: "",
             email = prefs[Keys.EMAIL] ?: "",
+            guest = prefs[Keys.GUEST] ?: false,
         )
     }
 
@@ -68,7 +73,24 @@ class SessionStore(private val context: Context) {
             it[Keys.USERNAME] = username
             it[Keys.DISPLAY_NAME] = displayName.orEmpty()
             it[Keys.EMAIL] = email.orEmpty()
+            it[Keys.GUEST] = false
         }
+    }
+
+    /**
+     * Skips account setup: points the app at the official instance so public timelines
+     * stay browsable without an account.
+     */
+    suspend fun continueAsGuest() {
+        context.fitPubDataStore.edit {
+            it[Keys.SERVER_URL] = DEFAULT_SERVER_URL
+            it.remove(Keys.TOKEN)
+            it[Keys.GUEST] = true
+        }
+    }
+
+    suspend fun clearGuest() {
+        context.fitPubDataStore.edit { it.remove(Keys.GUEST) }
     }
 
     suspend fun updateDisplayName(displayName: String) {
@@ -81,10 +103,14 @@ class SessionStore(private val context: Context) {
             it.remove(Keys.USERNAME)
             it.remove(Keys.DISPLAY_NAME)
             it.remove(Keys.EMAIL)
+            it.remove(Keys.GUEST)
         }
     }
 
     companion object {
+        /** The official FitPub instance used for "skip" / guest browsing. */
+        const val DEFAULT_SERVER_URL = "https://fitpub.social"
+
         /** Normalizes a user-entered instance URL to a canonical base (no trailing slash). */
         fun normalizeServerUrl(raw: String): String {
             var url = raw.trim()

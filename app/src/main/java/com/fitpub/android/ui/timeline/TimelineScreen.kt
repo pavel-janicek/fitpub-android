@@ -96,6 +96,10 @@ class TimelineViewModel(
             if (session.serverUrl.isNotBlank()) {
                 _ui.value = _ui.value.copy(serverUrl = session.serverUrl, unitSystem = "METRIC")
             }
+            // Guests have no followed athletes, so start them on the public timeline.
+            if (session.guest && _tab.value == TimelineTab.FEDERATED) {
+                _tab.value = TimelineTab.PUBLIC
+            }
             load()
         }
     }
@@ -126,6 +130,7 @@ class TimelineViewModel(
 fun TimelineScreen(
     container: AppContainer,
     unitSystem: String,
+    guestMode: Boolean = false,
     onOpenActivity: (String) -> Unit,
     onOpenProfile: (String) -> Unit,
     onOpenCreate: () -> Unit,
@@ -148,8 +153,10 @@ fun TimelineScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onOpenCreate) {
-                Icon(Icons.Filled.Add, contentDescription = "New activity")
+            if (!guestMode) {
+                FloatingActionButton(onClick = onOpenCreate) {
+                    Icon(Icons.Filled.Add, contentDescription = "New activity")
+                }
             }
         },
     ) { padding ->

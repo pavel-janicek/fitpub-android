@@ -32,8 +32,11 @@ fun ServerSetupContent(
     busy: Boolean,
     hint: String?,
     onSave: (String) -> Unit,
+    onSkip: (() -> Unit)? = null,
+    onCancel: (() -> Unit)? = null,
+    initialUrl: String? = null,
 ) {
-    var serverUrl by rememberSaveable { mutableStateOf("") }
+    var serverUrl by rememberSaveable(initialUrl) { mutableStateOf(initialUrl.orEmpty()) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -99,8 +102,15 @@ fun ServerSetupContent(
         ) {
             Text("Use the official instance")
         }
-        TextButton(onClick = { onSave(serverUrl) }) {
-            Text("Skip for now")
+        if (onSkip != null) {
+            TextButton(onClick = onSkip) {
+                Text("Skip for now")
+            }
+        }
+        if (onCancel != null) {
+            TextButton(onClick = onCancel) {
+                Text("Cancel")
+            }
         }
     }
 }
