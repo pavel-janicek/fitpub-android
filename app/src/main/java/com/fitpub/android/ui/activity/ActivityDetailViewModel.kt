@@ -1,0 +1,137 @@
+package com.fitpub.android.ui.activity
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.fitpub.android.AppContainer
+import com.fitpub.android.data.dto.CommentDto
+import com.fitpub.android.data.dto.LikeDto
+import com.fitpub.android.data.dto.ReactionPalette
+import com.fitpub.android.data.dto.TrackFeatureCollectionDto
+import com.fitpub.android.data.network.ApiResult
+import com.fitpub.android.util.TrackParser
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+class ActivityDetailViewModel(
+    private val activities: com.fitpub.android.data.repository.ActivityRepository,
+) : ViewModel() {
+
+    data class UiState(
+        val loading: Boolean = false,
+        val error: String? = null,
+        val activity: com.fitpub.android.data.dto.ActivityDto? = null,
+        val track: TrackFeatureCollectionDto? = null,
+        val likes: List<LikeDto> = emptyList(),
+        val comments: List<CommentDto> = emptyList(),
+    )
+
+    private val _ui = MutableStateFlow(UiState())
+    val ui: StateFlow<UiState> = _ui.asStateFlow()
+
+    fun load(activityId: String) {
+        viewModelScope.launch {
+            _ui.value = _ui.value.copy(loading = true, error = null)
+            when (val r = activities.detail(activityId)) {
+                is ApiResult.Success -> {
+                    _ui.value = _ui.value.copy(loading = false, activity = r.data)
+                    loadTrack(activityId)
+                    loadComments(activityId)
+                    loadLikes(activityId)
+                }
+                is ApiResult.Error -> _ui.value = _ui.value.copy(loading = false, error = r.message)
+            }
+        }
+    }
+
+    private suspend fun loadTrack(id: String) {
+        if (_ui.value.activity?.hasGpsTrack != true) return
+        when (val t = activities.track(id)) {
+            is ApiResult.Success -> _ui.value = _ui.value.copy(track = t.data)
+            else -> Unit
+        }
+    }
+
+    private suspend fun loadComments(id: String) {
+        when (val c = activities.comments(id, page = 0, size = 50)) {
+            is ApiResult.Success -> _ui.value = _ui.value.copy(comments = c.data.content)
+            else -> Unit
+        }
+    }
+
+    private suspend fun loadLikes(id: String) {
+        when (val l = activities.likes(id)) {
+            is ApiResult.Success -> _ui.value = _ui.value.copy(likes = l.data)
+            else -> Unit
+        }
+    }
+
+    fun react(activityId: String, emoji: String?) {
+        viewModelScope.launch {
+            val current = _ui.value.activity
+            val mine = current?.currentUserReaction
+            if (mine == emoji) {
+                activities.unreact(activityId)
+            } else {
+                activities.react(activityId, emoji)
+            }
+            load(activityId)
+        }
+    }
+
+    fun addComment(activityId: String, text: String) {
+        viewModelScope.launch {
+            activities.addComment(activityId, text)
+            loadComments(activityId)
+        }
+    }
+
+    fun deleteComment(activityId: String, commentId: String) {
+        viewModelScope.launch {
+            activities.deleteComment(activityId, commentId)
+            loadComments(activityId)
+        }
+    }
+
+    /** Parsed polyline segments for the map (high-res preferred). */
+    fun trackSegments(): List<List<org.osmdroid.util.GeoPoint>> =
+        TrackParser.fromFeatureCollection(_ui.value.track)
+
+    companion object {
+        fun factory(container: AppContainer): ViewModelProvider.Factory = viewModelFactory {
+            initializer { ActivityDetailViewModel(container.activityRepository) }
+        }
+    }
+}

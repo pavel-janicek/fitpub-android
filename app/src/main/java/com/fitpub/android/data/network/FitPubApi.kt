@@ -236,6 +236,12 @@ interface FitPubApi {
         @Query("includeRemote") includeRemote: Boolean = false,
     ): Response<UserSearchResultDto>
 
+    @GET("api/users/browse")
+    suspend fun browseUsers(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20,
+    ): Response<UserSearchResultDto>
+
     @GET("api/users/{username}/followers")
     suspend fun followers(
         @Path("username") username: String,

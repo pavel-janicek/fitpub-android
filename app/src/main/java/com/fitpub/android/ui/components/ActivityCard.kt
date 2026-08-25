@@ -67,7 +67,7 @@ fun ActivityCard(activity: TimelineActivityDto, serverUrl: String, unitSystem: S
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxWidth().height(140.dp).clip(RoundedCornerShape(12.dp)),
                 )
-            } else if (activity.simplifiedTrack != null || activity.hasGpsTrack == true) {
+                } else if (activity.simplifiedTrack != null) {
                 Box(
                     modifier = Modifier.fillMaxWidth().height(88.dp).clip(RoundedCornerShape(12.dp)).background(
                         Brush.linearGradient(

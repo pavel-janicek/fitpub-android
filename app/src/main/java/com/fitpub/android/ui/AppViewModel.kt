@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 /** Shared app state: session + unit preference used for formatting across screens. */
 class AppViewModel(
@@ -27,15 +28,26 @@ class AppViewModel(
     private val _profile = MutableStateFlow<UserDto?>(null)
     val profile: StateFlow<UserDto?> = _profile.asStateFlow()
 
+    private val _loaded = MutableStateFlow(false)
+
+    init {
+        viewModelScope.launch {
+            sessionStore.session.collect { _loaded.value = true }
+        }
+    }
+
     val uiState: StateFlow<AppUiState> = combine(
         sessionStore.session,
         _unitSystem,
-    ) { session, _ ->
+        _loaded,
+    ) { session, _, isLoaded ->
         AppUiState(
+            loaded = isLoaded,
             configured = session.isConfigured,
             loggedIn = session.isLoggedIn,
             username = session.username,
             displayName = session.displayName,
+            serverUrl = session.serverUrl,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppUiState())
 
@@ -56,8 +68,10 @@ class AppViewModel(
 }
 
 data class AppUiState(
+    val loaded: Boolean = false,
     val configured: Boolean = false,
     val loggedIn: Boolean = false,
     val username: String = "",
     val displayName: String = "",
+    val serverUrl: String = "",
 )

@@ -78,6 +78,18 @@ class UserRepository(
         }
     }
 
+    suspend fun browse(): ApiResult<UserSearchResultDto> {
+        return try {
+            val response = api.browseUsers()
+            if (!response.isSuccessful) {
+                return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
+            }
+            ApiResult.Success(response.body() ?: UserSearchResultDto())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error", throwable = e)
+        }
+    }
+
     suspend fun followers(username: String): ApiResult<List<UserDto>> {
         return try {
             val response = api.followers(username)

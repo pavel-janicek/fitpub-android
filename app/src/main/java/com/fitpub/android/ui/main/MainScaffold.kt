@@ -1,0 +1,124 @@
+package com.fitpub.android.ui.main
+
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.fitpub.android.AppContainer
+import com.fitpub.android.ui.AppViewModel
+import com.fitpub.android.ui.analytics.AnalyticsTabContent
+import com.fitpub.android.ui.discover.DiscoverTabContent
+import com.fitpub.android.ui.navigation.Routes
+import com.fitpub.android.ui.notifications.NotificationsTabContent
+import com.fitpub.android.ui.notifications.NotificationsViewModel
+import com.fitpub.android.ui.profile.ProfileScreen
+import com.fitpub.android.ui.timeline.TimelineScreen
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainScaffold(
+    container: AppContainer,
+    appViewModel: AppViewModel,
+    onOpenActivity: (String) -> Unit,
+    onOpenProfile: (String) -> Unit,
+    onOpenCreate: () -> Unit,
+    onOpenSettings: () -> Unit,
+) {
+    var selectedTab by rememberSaveable { mutableStateOf(Routes.BottomTab.TIMELINE.name) }
+
+    // Badge for unread notifications.
+    val notificationsVm: NotificationsViewModel =
+        viewModel(factory = NotificationsViewModel.factory(container))
+    val unread by notificationsVm.unreadCount.collectAsState()
+    LaunchedEffect(Unit) { notificationsVm.pollUnreadCount() }
+
+    val unitSystem by appViewModel.unitSystem.collectAsState()
+    val sessionState by appViewModel.uiState.collectAsState()
+
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                Routes.BottomTab.entries.forEach { tab ->
+                    NavigationBarItem(
+                        selected = selectedTab == tab.name,
+                        onClick = {
+                            selectedTab = tab.name
+                            if (tab == Routes.BottomTab.NOTIFICATIONS) notificationsVm.markPollingDirty()
+                        },
+                        icon = {
+                            val icon = when (tab) {
+                                Routes.BottomTab.TIMELINE -> Icons.Filled.Timeline
+                                Routes.BottomTab.SEARCH_TAB -> Icons.Filled.Search
+                                Routes.BottomTab.ANALYTICS -> Icons.Filled.BarChart
+                                Routes.BottomTab.NOTIFICATIONS -> Icons.Filled.Notifications
+                                Routes.BottomTab.ME_TAB -> Icons.Filled.Person
+                            }
+                            if (tab == Routes.BottomTab.NOTIFICATIONS && unread > 0) {
+                                BadgedBox(badge = { Badge { Text(unread.toString()) } }) { Icon(icon, null) }
+                            } else {
+                                Icon(icon, contentDescription = tab.label)
+                            }
+                        },
+                        label = { Text(tab.label) },
+                    )
+                }
+            }
+        },
+    ) { padding ->
+        val modifier = Modifier.padding(padding)
+        when (Routes.BottomTab.valueOf(selectedTab)) {
+            Routes.BottomTab.TIMELINE -> TimelineScreen(
+                container = container,
+                unitSystem = unitSystem,
+                onOpenActivity = onOpenActivity,
+                onOpenProfile = onOpenProfile,
+                onOpenCreate = onOpenCreate,
+            )
+            Routes.BottomTab.SEARCH_TAB -> DiscoverTabContent(
+                container = container,
+                serverUrl = sessionState.serverUrl,
+                onOpenProfile = onOpenProfile,
+            )
+            Routes.BottomTab.ANALYTICS -> AnalyticsTabContent(
+                container = container,
+                unitSystem = unitSystem,
+            )
+            Routes.BottomTab.NOTIFICATIONS -> NotificationsTabContent(
+                viewModel = notificationsVm,
+                container = container,
+                onOpenActivity = onOpenActivity,
+                onOpenProfile = onOpenProfile,
+            )
+            Routes.BottomTab.ME_TAB -> ProfileScreen(
+                username = sessionState.username.ifBlank { "me" },
+                container = container,
+                appViewModel = appViewModel,
+                embedded = true,
+                onBack = {},
+                onOpenActivity = onOpenActivity,
+                onEditProfile = onOpenSettings,
+                onOpenSettings = onOpenSettings,
+            )
+        }
+    }
+}

@@ -79,8 +79,6 @@ class AuthRepository(
     }
     suspend fun requestPasswordReset(usernameOrEmail: String): ApiResult<Unit> =
         safeCall { api.requestPasswordReset(PasswordResetRequest(usernameOrEmail)) }
-        return safeCall { api.requestPasswordReset(PasswordResetRequest(usernameOrEmail)) }
-    }
 
     suspend fun confirmPasswordReset(token: String, newPassword: String): ApiResult<AuthResponse> {
         return try {
@@ -114,7 +112,7 @@ class AuthRepository(
     suspend fun setServerUrl(url: String) = sessionStore.setServerUrl(url)
 
     /** Universal wrapper that turns a Retrofit call into an [ApiResult] (202 accepted included). */
-    private suspend inline fun safeCall(crossinline call: suspend () -> retrofit2.Response<*?>): ApiResult<Unit> {
+    private suspend fun safeCall(call: suspend () -> retrofit2.Response<*>): ApiResult<Unit> {
         return try {
             val response = call()
             if (response.isSuccessful || response.code() == 202) ApiResult.Success(Unit)

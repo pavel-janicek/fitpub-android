@@ -14,8 +14,9 @@ class FitPubApplication : Application() {
         container = AppContainer(this)
 
         // Configure osmdroid tile cache in app storage.
-        Configuration.getInstance()
-            .load(context = this, sharedPreferenceName = "osmdroid_prefs")
+        @Suppress("DEPRECATION")
+        val prefs = android.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        Configuration.getInstance().load(this, prefs)
         Configuration.getInstance().userAgentValue = "FitPub-Android/0.1.0"
 
         // osmdroid needs access to a writeable tile cache dir for modern scoped storage.
