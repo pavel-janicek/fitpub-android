@@ -66,16 +66,50 @@ class UserRepository(
         }
     }
 
+    /**
+     * Searches users, federation-aware. Plain queries match local users; handles of the
+     * form `@user@host` or `user@host` trigger a remote-inclusive lookup. Since server
+     * implementations differ on whether they match the full handle or just the local
+     * part, both variants are queried and the results merged and de-duplicated.
+     */
     suspend fun search(query: String): ApiResult<UserSearchResultDto> {
+        val cleaned = query.trim().removePrefix("@")
+        if (cleaned.isBlank()) return ApiResult.Success(UserSearchResultDto())
         return try {
-            val response = api.searchUsers(query)
-            if (!response.isSuccessful) {
-                return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
+            val hasRemoteHost = cleaned.substringAfter('@', missingDelimiterValue = "").isNotBlank()
+            if (!hasRemoteHost) {
+                executeSearch(cleaned)
+            } else {
+                val byHandle = runCatching { api.searchUsers(cleaned, includeRemote = true) }.getOrNull()
+                val byName = runCatching { api.searchUsers(cleaned.substringBefore('@'), includeRemote = true) }.getOrNull()
+                val successes = listOfNotNull(byHandle, byName)
+                    .filter { it.isSuccessful }
+                    .mapNotNull { it.body() }
+                if (successes.isEmpty()) {
+                    val failure = byHandle ?: byName
+                    return ApiResult.Error(
+                        ErrorMessages.extract(failure?.errorBody()?.string()),
+                        failure?.code() ?: 0,
+                    )
+                }
+                val seen = mutableSetOf<String>()
+                val merged = successes.flatMap { it.content }.filter { user ->
+                    val key = user.id ?: user.username ?: return@filter false
+                    seen.add(key)
+                }
+                ApiResult.Success(UserSearchResultDto(content = merged))
             }
-            ApiResult.Success(response.body() ?: UserSearchResultDto())
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Network error", throwable = e)
         }
+    }
+
+    private suspend fun executeSearch(cleaned: String): ApiResult<UserSearchResultDto> {
+        val response = api.searchUsers(cleaned)
+        if (!response.isSuccessful) {
+            return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
+        }
+        return ApiResult.Success(response.body() ?: UserSearchResultDto())
     }
 
     suspend fun browse(): ApiResult<UserSearchResultDto> {

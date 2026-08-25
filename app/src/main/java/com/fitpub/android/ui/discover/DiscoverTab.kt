@@ -45,6 +45,8 @@ fun DiscoverTabContent(
             value = ui.query,
             onValueChange = vm::onQueryChange,
             label = { Text("Search athletes") },
+            placeholder = { Text("name or @name@instance") },
+            supportingText = { Text("Tip: use @name@instance to find athletes on other instances") },
             singleLine = true,
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
             modifier = Modifier
