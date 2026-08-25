@@ -93,3 +93,65 @@ Other observations:
 > enable R8 minification with correct keep rules for kotlinx-serialization/
 > Retrofit/osmdroid; add release signing config (via env vars); bump
 > versionName/versionCode; final lint cleanup; produce a signed release APK."
+
+### Iteration 7 — On-device activity recording ("Record" feature)
+Goal: start an exercise inside the app, record the track with the phone's GPS
+while the screen is off / app is backgrounded, then review and share the
+resulting activity to the configured FitPub instance. This is a new feature
+(no backend changes needed — the existing single-file upload endpoint is reused).
+
+Suggested split into sub-steps (one prompt each if done iteratively):
+
+**7a — Permissions & service skeleton**
+> "Add location-recording groundwork: manifest entries for ACCESS_FINE_LOCATION
+> (+ COARSE), FOREGROUND_SERVICE, FOREGROUND_SERVICE_LOCATION, POST_NOTIFICATIONS
+> (API 33+), and a declared foreground Service with
+> android:foregroundServiceType=\"location\"; runtime permission request flow from
+> Compose (rememberLauncherForActivityResult) with rationale + settings fallback;
+> create TrackRecordingService as a lifecycle-aware foreground service showing an
+> ongoing notification (elapsed time, pause & stop actions). Verify the service
+> survives backgrounding and process death restarts into the right state."
+
+**7b — Tracking engine**
+> "Implement GPS tracking inside TrackRecordingService using Android framework
+> LocationManager (the project deliberately avoids Google Play services; revisit
+> only if needed): requestUpdates with ~1–3 s interval / ~2 m min distance,
+> filtering of inaccurate fixes (accuracy > ~20 m discarded), a state machine
+> (idle → recording ⇄ paused → stopped), and incremental persistence of track
+> points (Room entity lat/lon/ele/time/accuracy or append-only file) so nothing
+> is lost on process death. Expose live state via a shared StateFlow
+> (elapsed time, distance via haversine sum, current pace, elevation gain with
+> smoothing). Add unit tests for distance/elevation math."
+
+**7c — Recording UI**
+> "Build the Record flow in Compose: entry point from a 'Record' button next to
+> the + on Timeline/Me (new Route RECORD); pre-start screen with activity type
+> picker (reuse ActivityTypes); live recording screen with big elapsed timer,
+> distance, pace, elevation gain, and an optional osmdroid mini-map showing the
+> live position dot + drawn polyline; pause/resume/stop controls; keep-screen-on
+> toggle. Wire UI to the service StateFlow; handle 'recording in progress' state
+> app-wide (e.g., banner + guard against starting a second session)."
+
+**7d — Save & share to FitPub**
+> "On stop: assemble the recorded session into a GPX 1.1 file (trk/trkseg/trkpt
+> with ele + time; separate trkseg per paused segment) stored in app-private
+> storage; show a post-workout summary screen (stats + mini-map) where the user
+> sets title, description, visibility, activity type; upload via the existing
+> multipart upload endpoint (same path as UploadForm); mark pending uploads in
+> local storage and retry failed uploads later; after successful server import,
+> offer navigation to the created ActivityDetail. Confirm privacy zones are
+> applied server-side as with any uploaded track."
+
+**7e — Polish & edge cases**
+> "Handle battery/Doze behavior (foreground service exemption check, guidance to
+> disable battery optimization), GPS-off prompts, no-fix handling (warn when no
+> point captured for N minutes), discard confirmation dialog, low-storage
+> behavior, and emulator testing via mock locations. Update README features list
+> and take fresh screenshots."
+
+Notes:
+- Reuses existing pieces: osmdroid (live map), Format.kt (stat formatting),
+  ActivityTypes icons, upload endpoint/multipart plumbing from CreateViewModel.
+- New dependencies to consider (keep minimal): none strictly required — Room
+  optional (could start with a simple file-backed log); avoid play-services-location.
+
