@@ -10,7 +10,11 @@ Built with Kotlin and Jetpack Compose (Material 3).
 ## Features
 
 - **Auth** — connect to any FitPub instance, register (with email verification code),
-  log in, reset password.
+  log in, reset password. The instance is shown on the login screen and can be
+  changed at any time.
+- **Guest mode** — skip account setup entirely ("Skip for now") or browse without
+  signing in from the login screen; guests get the public timeline of the selected
+  instance and can sign up later from Settings.
 - **Timelines** — federated / public / personal feeds of activities.
 - **Discover** — search and browse athletes across the instance, follow / unfollow.
 - **Activities** — upload FIT / GPX / TCX files or create entries manually; view
@@ -26,6 +30,11 @@ FitPub instance (e.g. `https://fitpub.example.com` or `http://192.168.1.10:8080`
 A scheme is added automatically if omitted (`https://` by default), and every API
 request is routed to that host via an OkHttp interceptor — so a single install can
 talk to any instance without rebuilding.
+
+You are not locked in: the instance can be changed later from
+**Settings → Instance → Change instance**, or directly from the login screen
+(**Change instance** link under the host name). Switching instances signs you out,
+since access tokens are per-instance.
 
 Plain-HTTP LAN/dev URLs are allowed: cleartext traffic is enabled via
 `app/src/main/res/xml/network_security_config.xml` and `usesCleartextTraffic` in
@@ -51,3 +60,11 @@ Requirements: JDK 17, Android SDK with platform 35.
 - **Maps** — osmdroid with OSM tiles for GPS track rendering.
 
 See `PLAN.md` for the current project status and roadmap.
+
+## Built with AI
+
+This project is developed with the help of an AI coding agent:
+[Cline](https://github.com/cline/cline), powered by the **ox-alpha** large language
+model. Code reviews, testing on device/emulator, and product decisions are done by
+a human; implementation, refactoring, and documentation drafts are produced by the
+agent in iterative sessions (see `PLAN.md` for the iteration plan).
