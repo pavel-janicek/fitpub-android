@@ -1,6 +1,7 @@
 package com.fitpub.android.data.network
 
 import android.content.Context
+import com.fitpub.android.BuildConfig
 import com.fitpub.android.data.session.Session
 import com.fitpub.android.data.session.SessionStore
 import kotlinx.coroutines.flow.first
@@ -88,5 +89,5 @@ class ApiClient(
             .create(FitPubApi::class.java)
     }
 
-    private val isDebug: Boolean get() = true
+    private val isDebug: Boolean get() = BuildConfig.DEBUG
 }
