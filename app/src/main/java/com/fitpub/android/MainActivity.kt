@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
                             CircularProgressIndicator()
                         }
                         !state.configured -> ServerSetupRoute(container)
-                        !state.loggedIn && !state.guest -> AuthFlowRoute(container)
+                        !state.loggedIn && !state.guest -> AuthFlowRoute(container, appViewModel)
                         else -> MainAppRoute(container, appViewModel)
                     }
                 }
@@ -84,7 +84,7 @@ private fun ServerSetupRoute(
     )
 }
 @Composable
-private fun AuthFlowRoute(container: AppContainer) {
+private fun AuthFlowRoute(container: AppContainer, appViewModel: AppViewModel) {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Routes.LOGIN) {
         composable(Routes.LOGIN) {
@@ -92,13 +92,27 @@ private fun AuthFlowRoute(container: AppContainer) {
             val busy by vm.busy.collectAsState()
             val error by vm.error.collectAsState()
             val success by vm.success.collectAsState()
+            val st by appViewModel.uiState.collectAsState()
             if (success == true) return@composable
             LoginContent(
                 busy = busy,
                 error = error,
+                serverUrl = st.serverUrl,
                 onLogin = vm::login,
                 onOpenRegister = { navController.navigate(Routes.REGISTER) },
                 onOpenPasswordReset = { navController.navigate(Routes.PASSWORD_RESET) },
+                onChangeServer = { navController.navigate(Routes.SERVER_SETUP) },
+                onBrowseAsGuest = vm::browseAsGuest,
+            )
+        }
+        composable(Routes.SERVER_SETUP) {
+            val st by appViewModel.uiState.collectAsState()
+            ServerSetupRoute(
+                container = container,
+                initialUrl = st.serverUrl.takeIf { it.isNotBlank() },
+                allowSkip = false,
+                onDone = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() },
             )
         }
         composable(Routes.REGISTER) {

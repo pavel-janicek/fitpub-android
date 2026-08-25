@@ -2,6 +2,7 @@ package com.fitpub.android.ui.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -12,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -28,18 +30,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun LoginContent(
     busy: Boolean,
     error: String?,
+    serverUrl: String,
     onLogin: (username: String, password: String) -> Unit,
     onOpenRegister: () -> Unit,
     onOpenPasswordReset: () -> Unit,
+    onChangeServer: () -> Unit,
+    onBrowseAsGuest: () -> Unit,
 ) {
     var username by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+    val host = serverUrl.removePrefix("https://").removePrefix("http://")
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -50,6 +58,26 @@ fun LoginContent(
         verticalArrangement = Arrangement.Center,
     ) {
         Text("Log in", style = MaterialTheme.typography.headlineMedium)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(top = 4.dp),
+        ) {
+            Icon(
+                Icons.Outlined.Public,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(end = 4.dp).size(16.dp),
+            )
+            Text(
+                host.ifBlank { "no instance configured" },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+        TextButton(onClick = onChangeServer, modifier = Modifier.padding(top = 0.dp)) {
+            Text("Change instance", style = MaterialTheme.typography.labelMedium)
+        }
         Text(
             "Welcome back to your training",
             style = MaterialTheme.typography.bodyMedium,
@@ -101,6 +129,9 @@ fun LoginContent(
         }
         TextButton(onClick = onOpenRegister) {
             Text("New here? Create an account")
+        }
+        TextButton(onClick = onBrowseAsGuest) {
+            Text("Browse public timeline without an account")
         }
     }
 }

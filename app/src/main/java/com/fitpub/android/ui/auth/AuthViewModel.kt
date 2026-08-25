@@ -61,6 +61,7 @@ class ServerSetupViewModel(
 
 class LoginViewModel(
     private val auth: com.fitpub.android.data.repository.AuthRepository,
+    private val sessionStore: SessionStore,
 ) : ViewModel() {
 
     private val _busy = MutableStateFlow(false)
@@ -84,9 +85,14 @@ class LoginViewModel(
         }
     }
 
+    /** Browses the configured instance's public timeline without signing in. */
+    fun browseAsGuest() {
+        viewModelScope.launch { sessionStore.startGuestBrowsing() }
+    }
+
     companion object {
         fun factory(container: AppContainer) = viewModelFactory {
-            initializer { LoginViewModel(container.authRepository) }
+            initializer { LoginViewModel(container.authRepository, container.sessionStore) }
         }
     }
 }

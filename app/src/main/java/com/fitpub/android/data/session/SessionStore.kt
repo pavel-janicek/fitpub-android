@@ -89,6 +89,17 @@ class SessionStore(private val context: Context) {
         }
     }
 
+    /**
+     * Enables anonymous browsing of the currently configured instance without touching
+     * its URL (used by "Browse without an account" on the login screen).
+     */
+    suspend fun startGuestBrowsing() {
+        context.fitPubDataStore.edit {
+            it.remove(Keys.TOKEN)
+            it[Keys.GUEST] = true
+        }
+    }
+
     suspend fun clearGuest() {
         context.fitPubDataStore.edit { it.remove(Keys.GUEST) }
     }
