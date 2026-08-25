@@ -159,7 +159,15 @@ fun ProfileScreen(
     }
 
     if (embedded) {
-        androidx.compose.foundation.layout.Box(modifier.fillMaxSize()) { content(Modifier.fillMaxSize()) }
+        androidx.compose.foundation.layout.Box(modifier.fillMaxSize()) {
+            content(Modifier.fillMaxSize())
+            IconButton(
+                onClick = onOpenSettings,
+                modifier = Modifier.align(Alignment.TopEnd),
+            ) {
+                Icon(Icons.Filled.Settings, contentDescription = "Settings")
+            }
+        }
     } else {
         Scaffold(
             topBar = {

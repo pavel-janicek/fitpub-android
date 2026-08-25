@@ -153,3 +153,42 @@ fun MainScaffold(
         }
     }
 }
+
+@Composable
+private fun GuestMePanel(
+    serverUrl: String,
+    onSignIn: () -> Unit,
+    onOpenSettings: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text("\uD83D\uDC64", style = MaterialTheme.typography.displayMedium)
+        Text(
+            "Browsing as a guest",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        Text(
+            serverUrl.removePrefix("https://").removePrefix("http://"),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        Text(
+            "You're viewing public activities only. Sign in to post activities, follow athletes and get notifications.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        Button(
+            onClick = onSignIn,
+            modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+        ) { Text("Sign in or create account") }
+        OutlinedButton(
+            onClick = onOpenSettings,
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        ) { Text("Settings") }
+    }
+}
