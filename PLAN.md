@@ -155,3 +155,85 @@ Notes:
 - New dependencies to consider (keep minimal): none strictly required — Room
   optional (could start with a simple file-backed log); avoid play-services-location.
 
+### Iteration 8 — Wear OS companion app ("FitPub Wear")
+Goal: a Wear OS companion module so athletes can leave the phone at home,
+start/record a workout from the wrist using the watch's internal monitors
+(GPS, heart rate, step counter), and have it shared to their FitPub
+instance — the open-source equivalent of Strava's wearable experience.
+Delivered as a new Gradle module `:wear` alongside `:app`; the phone remains
+the sign-in authority and the upload relay.
+
+Suggested split into sub-steps (one prompt each if done iteratively):
+
+**8a — Module & project scaffolding**
+> "Create a :wear Wear OS module (build.gradle.kts with com.android.application +
+> wearApp wiring in :app via wearApp/unstable bundled dependency, wear_app.xml
+> pairing metadata, minSdk matching Wear OS 3+ = API 26–30 target latest),
+> set up Compose for Wear OS (androidx.wear.compose:material, navigation),
+> round-display-safe layouts (BoxWithConstraints / curved modifiers where useful),
+> and a minimal launcher activity proving install-on-watch works from Studio.
+> Keep the module independent of :app code except a small :core-shared set or
+> duplicated DTOs — decide and document which."
+
+**8b — Phone↔watch sign-in handshake**
+> "Implement sign-in relay from the mobile app using the Android Data Layer:
+> CapabilityClient advertising 'fitpub_phone' capability, MessageClient handshake
+> when the watch requests credentials, phone responds with serverUrl + bearer
+> token (+ username/displayName) pulled from SessionStore; watch stores them via
+> its own DataStore (document that Data Layer payloads are TLS-equivalent
+> protected on the transport but still encrypt-at-rest later per Iteration 6).
+> Add 'device signed in as @user' state UI on the watch and a revoke/sign-out
+> path both directions; handle no-phone-paired and stale-token states."
+
+**8c — Watch sensor recording engine**
+> "Build WorkoutRecordingService on the watch: a foreground service (location +
+> bodySensors + activityRecognition types) capturing GPS (onboard GNSS via
+> FusedLocationProvider or LocationManager — decide per minSdk/target), heart
+> rate (Health Services androidx.health:health-services-client on Wear OS 3+
+> with SensorManager TYPE_HEART_RATE fallback), step counter/detector, and
+> elapsed time; same state machine semantics as Iteration 7b (recording ⇄
+> paused → stopped), incremental persistence to survive process death, live
+> StateFlow of HR/distance/pace/steps. Declare BODY_SENSORS (runtime),
+> ACTIVITY_RECOGNITION, location permissions; add availability detection
+> (no-GPS watches degrade gracefully to HR+steps+time)."
+
+**8d — On-watch recording UX**
+> "Compose-for-Wear recording screens optimized for glanceability: big live HR
+> (color-coded zones) + duration + distance on one swipeable screen, map-less
+> by default (save battery; optional breadcrumb view later); start flow with
+> activity-type picker; long-press or dedicated button to pause/stop; Ongoing
+> Activity API integration so the workout appears on the watch face/in the
+> recents tray; optional Tile ('Start workout') and complication. Handle
+> always-on/ambient rendering with burn-in protection."
+
+**8e — Sync & share to FitPub**
+> "Post-workout sync: serialize the recorded session (GPX 1.1 for the track +
+> JSON sidecar or FIT fields for HR series/steps) on the watch; attempt direct
+> multipart upload from the watch when it has connectivity (Wi-Fi/BLE-to-phone/
+> LTE) reusing the FitPub upload endpoint and stored token; if offline or upload
+> fails, queue locally and relay through the phone via Data Layer (phone performs
+> the upload with its own session) — implement both paths with a single
+> WorkManager-style retry queue on each side. Surface pending-sync count on the
+> watch and in the phone app (e.g., banner on Timeline). End-to-end test:
+> record on watch offline → phone comes online → activity appears in FitPub web."
+
+**8f — Hardening & docs**
+> "Battery profiling (target: >1h continuous GPS+HR recording), sensor accuracy
+> validation against a reference device, round/chin-offset layout QA on multiple
+> form factors, permission-denial and unpaired-phone flows, README section for
+> the Wear app (pairing, sign-in, what's recorded), and CI build for :wear."
+
+Notes:
+- Reuses concepts and formats from Iteration 7 (state machine, GPX writer,
+  upload plumbing) — implement 7 first; the watch module duplicates rather than
+  shares the tracking engine initially because :wear can't depend on Androidx
+  ViewModel/service classes compiled for phone-only APIs without care.
+- Dependency decisions to make explicitly in 8a/8c: Data Layer (play-services-wear)
+  requires Play Services on BOTH devices — acceptable default, but document a
+  degoogle'd fallback (direct watch→instance HTTP sign-in via a short-lived
+  pairing code shown on the phone) as a stretch goal.
+- Privacy: heart-rate series are health data — note in README what leaves the
+  device and that FitPub server handling follows the same privacy-zone rules as
+  any uploaded track.
+
+
