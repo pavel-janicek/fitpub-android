@@ -21,7 +21,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 
 @Composable
-private fun DurationFields(
+internal fun DurationFields(
     hours: String,
     minutes: String,
     onHours: (String) -> Unit,
@@ -44,7 +44,7 @@ private fun DurationFields(
 }
 
 @Composable
-private fun MetricFields(
+internal fun MetricFields(
     distanceKm: String,
     elevationM: String,
     onDistance: (String) -> Unit,
@@ -67,7 +67,7 @@ private fun MetricFields(
 }
 
 @Composable
-private fun CreateButton(
+internal fun CreateButton(
     vm: CreateViewModel,
     type: String,
     title: String,
@@ -85,8 +85,9 @@ private fun CreateButton(
         LocalDateTime.parse("$dateText${timeText.takeIf { it.isNotBlank() }?.let { "T$it" } ?: "T12:00"}")
     }.getOrElse { LocalDateTime.now() }
 
-    if (ui.error != null) {
-        Text(ui.error, color = MaterialTheme.colorScheme.error)
+    val error = ui.error
+    if (error != null) {
+        Text(error, color = MaterialTheme.colorScheme.error)
     }
     Button(
         onClick = {

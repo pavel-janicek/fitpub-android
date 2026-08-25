@@ -120,7 +120,7 @@ fun UserAvatar(
                 imageVector = Icons.Outlined.Person,
                 contentDescription = displayName,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(size.dp.value / 4.dp),
+                modifier = Modifier.padding(size.dp / 4),
             )
         }
     }

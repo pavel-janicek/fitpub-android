@@ -84,7 +84,7 @@ fun CommentComposer(activityId: String, viewModel: ActivityDetailViewModel) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Text(c.content, modifier = Modifier.padding(top = 6.dp))
+                    Text(c.content.orEmpty(), modifier = Modifier.padding(top = 6.dp))
                 }
             }
         }

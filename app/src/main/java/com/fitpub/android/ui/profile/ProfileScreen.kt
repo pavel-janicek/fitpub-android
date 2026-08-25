@@ -33,6 +33,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fitpub.android.AppContainer
 import com.fitpub.android.util.Format
 import com.fitpub.android.data.dto.ActivitySummaryDto

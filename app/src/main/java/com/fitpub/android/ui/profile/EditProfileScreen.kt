@@ -34,6 +34,7 @@ import com.fitpub.android.data.dto.DefaultTimelines
 import com.fitpub.android.data.dto.ProfileVisibilities
 import com.fitpub.android.data.dto.UserUpdateRequest
 import com.fitpub.android.data.network.ApiResult
+import com.fitpub.android.ui.AppViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -118,8 +119,9 @@ fun EditProfileScreen(
                     FilterChip(selected = timeline == t, onClick = { timeline = t }, label = { Text(t.lowercase()) })
                 }
             }
-            if (ui.error != null) {
-                Text(ui.error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 10.dp))
+            val error = ui.error
+            if (error != null) {
+                Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 10.dp))
             }
             Button(
                 onClick = {

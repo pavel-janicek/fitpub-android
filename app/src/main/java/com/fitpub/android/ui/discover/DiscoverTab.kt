@@ -24,6 +24,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fitpub.android.AppContainer
+import com.fitpub.android.data.dto.UserDto
+import com.fitpub.android.ui.components.EmptyState
+import com.fitpub.android.ui.components.ErrorState
+import com.fitpub.android.ui.components.LoadingIndicator
+import com.fitpub.android.ui.components.UserAvatar
 
 @Composable
 fun DiscoverTabContent(
