@@ -37,8 +37,8 @@ data class UserDto(
 
 @Serializable
 data class UserSearchResultDto(
-    val users: List<UserDto> = emptyList(),
-    val remoteResults: List<UserDto> = emptyList(),
+    val content: List<UserDto> = emptyList(),
+    val page: PageMetaDto = PageMetaDto(),
 )
 
 @Serializable

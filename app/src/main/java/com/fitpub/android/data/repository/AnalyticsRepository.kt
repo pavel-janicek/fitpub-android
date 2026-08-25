@@ -1,7 +1,7 @@
 package com.fitpub.android.data.repository
 
 import com.fitpub.android.data.dto.AchievementDto
-import com.fitpub.android.data.dto.ActivitySummaryDto
+import com.fitpub.android.data.dto.ActivitySummaryPeriodDto
 import com.fitpub.android.data.dto.DashboardDto
 import com.fitpub.android.data.dto.FormStatusDto
 import com.fitpub.android.data.dto.PersonalRecordDto
@@ -74,9 +74,33 @@ class AnalyticsRepository(
         }
     }
 
-    suspend fun weeklySummaries(weeks: Int = 12): ApiResult<List<ActivitySummaryDto>> {
+        suspend fun weeklySummaries(weeks: Int = 12): ApiResult<List<ActivitySummaryPeriodDto>> {
         return try {
             val response = api.weeklySummaries(weeks)
+            if (!response.isSuccessful) {
+                return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
+            }
+            ApiResult.Success(response.body() ?: emptyList())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error", throwable = e)
+        }
+    }
+
+    suspend fun monthlySummaries(months: Int = 12): ApiResult<List<ActivitySummaryPeriodDto>> {
+        return try {
+            val response = api.monthlySummaries(months)
+            if (!response.isSuccessful) {
+                return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
+            }
+            ApiResult.Success(response.body() ?: emptyList())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error", throwable = e)
+        }
+    }
+
+    suspend fun yearlySummaries(years: Int = 5): ApiResult<List<ActivitySummaryPeriodDto>> {
+        return try {
+            val response = api.yearlySummaries(years)
             if (!response.isSuccessful) {
                 return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
             }

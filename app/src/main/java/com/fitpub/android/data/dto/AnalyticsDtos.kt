@@ -14,9 +14,9 @@ data class DashboardDto(
     val recentPersonalRecords: List<PersonalRecordDto> = emptyList(),
     val recentAchievements: List<AchievementDto> = emptyList(),
     val formStatus: String? = null,
-    val currentWeekSummary: ActivitySummaryDto = ActivitySummaryDto(),
-    val currentMonthSummary: ActivitySummaryDto = ActivitySummaryDto(),
-    val currentYearSummary: ActivitySummaryDto = ActivitySummaryDto(),
+        val currentWeekSummary: ActivitySummaryPeriodDto = ActivitySummaryPeriodDto(),
+    val currentMonthSummary: ActivitySummaryPeriodDto = ActivitySummaryPeriodDto(),
+    val currentYearSummary: ActivitySummaryPeriodDto = ActivitySummaryPeriodDto(),
     val analyticsPendingStatus: AnalyticsPendingStatusDto? = null,
 )
 
@@ -59,9 +59,9 @@ data class TrainingLoadDto(
     val trainingStressBalance: Double? = null,
 )
 
-/** Pre-calculated activity summary for a period (week/month/year). */
+/** Period-based activity summary (week/month/year). Maps to server ActivitySummary. */
 @Serializable
-data class ActivitySummaryDto(
+data class ActivitySummaryPeriodDto(
     val id: String? = null,
     val userId: String? = null,
     val periodType: String? = null,

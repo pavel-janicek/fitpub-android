@@ -11,13 +11,6 @@ data class PageEnvelopeCommentDto(
     val content: List<CommentDto> = emptyList(),
     val page: PageMetaDto = PageMetaDto(),
 )
-package com.fitpub.android.data.dto
-
-import kotlinx.serialization.Serializable
-
-// ---------------------------------------------------------------------------
-// Comments
-// ---------------------------------------------------------------------------
 
 @Serializable
 data class CommentDto(

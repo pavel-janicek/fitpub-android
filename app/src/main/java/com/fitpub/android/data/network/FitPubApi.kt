@@ -259,10 +259,12 @@ interface FitPubApi {
     @DELETE("api/users/{username}/follow")
     suspend fun unfollow(@Path("username") username: String): Response<Unit>
 
-    @POST("api/users/{username}/follow-request/accept")
-// ------------------------------------------------------------------
-    // Analytics
-    // ------------------------------------------------------------------
+            @POST("api/users/{username}/follow-request/accept")
+    suspend fun acceptFollowRequest(@Path("username") username: String): Response<Unit>
+
+    @POST("api/users/{username}/follow-request/reject")
+    suspend fun rejectFollowRequest(@Path("username") username: String): Response<Unit>
+
 
     @GET("api/analytics/dashboard")
     suspend fun analyticsDashboard(): Response<DashboardDto>
@@ -284,13 +286,16 @@ interface FitPubApi {
     @GET("api/analytics/form-status")
     suspend fun formStatus(): Response<com.fitpub.android.data.dto.FormStatusDto>
 
-    @GET("api/analytics/summaries/weekly")
+        @GET("api/analytics/summaries/weekly")
     suspend fun weeklySummaries(
         @Query("weeks") weeks: Int = 12,
-    ): Response<List<com.fitpub.android.data.dto.ActivitySummaryDto>>
+    ): Response<List<com.fitpub.android.data.dto.ActivitySummaryPeriodDto>>
 
     @GET("api/analytics/summaries/monthly")
-    suspend fun monthlySummaries(@Query("months") months: Int = 12): Response<List<com.fitpub.android.data.dto.ActivitySummaryDto>>
+    suspend fun monthlySummaries(@Query("months") months: Int = 12): Response<List<com.fitpub.android.data.dto.ActivitySummaryPeriodDto>>
+
+    @GET("api/analytics/summaries/yearly")
+    suspend fun yearlySummaries(@Query("years") years: Int = 5): Response<List<com.fitpub.android.data.dto.ActivitySummaryPeriodDto>>
 
     // ------------------------------------------------------------------
     // Notifications
@@ -367,10 +372,6 @@ interface FitPubApi {
     // Push
     // ------------------------------------------------------------------
 
-    @GET("api/push/vapid-key")
+        @GET("api/push/vapid-key")
     suspend fun vapidKey(): Response<VapidKeyResponse>
 }
-    suspend fun acceptFollowRequest(@Path("username") username: String): Response<Unit>
-
-    @POST("api/users/{username}/follow-request/reject")
-    suspend fun rejectFollowRequest(@Path("username") username: String): Response<Unit>

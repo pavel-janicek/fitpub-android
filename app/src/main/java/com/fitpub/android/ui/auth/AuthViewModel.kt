@@ -173,6 +173,7 @@ data class RegistrationUi(
     val enabled: Boolean = true,
     val passwordRequired: Boolean = false,
 )
+
 class PasswordResetViewModel(
     private val auth: com.fitpub.android.data.repository.AuthRepository,
 ) : ViewModel() {
@@ -211,14 +212,9 @@ class PasswordResetViewModel(
         }
     }
 
-    companion object {
+        companion object {
         fun factory(container: AppContainer) = viewModelFactory {
             initializer { PasswordResetViewModel(container.authRepository) }
         }
     }
 }
-
-data class RegistrationUi(
-    val enabled: Boolean = true,
-    val passwordRequired: Boolean = false,
-)

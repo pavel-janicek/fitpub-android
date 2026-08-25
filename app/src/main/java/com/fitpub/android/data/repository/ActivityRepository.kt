@@ -95,7 +95,8 @@ class ActivityRepository(
             ApiResult.Error(e.message ?: "Network error", throwable = e)
         }
     }
-/** Uploads a FIT/GPX/TCX file picked through the system file picker. */
+
+    /** Uploads a FIT/GPX/TCX file picked through the system file picker. */
     suspend fun uploadFile(
         context: Context,
         uri: Uri,
@@ -167,7 +168,15 @@ class ActivityRepository(
 
     suspend fun deleteComment(activityId: String, commentId: String): ApiResult<Unit> {
         return try {
-// --- Reactions / likes ---
+            val response = api.deleteComment(activityId, commentId)
+            if (response.isSuccessful) ApiResult.Success(Unit)
+            else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error", throwable = e)
+        }
+    }
+
+    // --- Reactions / likes ---
 
     suspend fun likes(activityId: String): ApiResult<List<LikeDto>> {
         return try {
@@ -221,10 +230,3 @@ class ActivityRepository(
         fun visibilityFromName(name: String?): String = name ?: "PUBLIC"
     }
 }
-            val response = api.deleteComment(activityId, commentId)
-            if (response.isSuccessful) ApiResult.Success(Unit)
-            else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
-        } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
-        }
-    }

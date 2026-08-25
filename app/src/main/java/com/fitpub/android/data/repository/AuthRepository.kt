@@ -77,7 +77,8 @@ class AuthRepository(
             ApiResult.Error(e.message ?: "Network error", throwable = e)
         }
     }
-suspend fun requestPasswordReset(usernameOrEmail: String): ApiResult<Unit> {
+    suspend fun requestPasswordReset(usernameOrEmail: String): ApiResult<Unit> =
+        safeCall { api.requestPasswordReset(PasswordResetRequest(usernameOrEmail)) }
         return safeCall { api.requestPasswordReset(PasswordResetRequest(usernameOrEmail)) }
     }
 

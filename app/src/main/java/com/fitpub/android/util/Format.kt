@@ -64,7 +64,7 @@ object Format {
         }
     }
 
-    fun elevation(meters: Double?, unitSystem: String?): String {
+        fun elevation(meters: Double?, unitSystem: String?): String {
         if (meters == null) return "—"
         return if (unitSystem == "IMPERIAL") {
             String.format(Locale.US, "%.0f ft", meters * 3.28084)
@@ -72,7 +72,8 @@ object Format {
             String.format(Locale.US, "%.0f m", meters)
         }
     }
-fun heartRate(bpm: Int?): String = bpm?.let { "$it bpm" } ?: "—"
+
+    fun heartRate(bpm: Int?): String = bpm?.let { "$it bpm" } ?: "—"
 
     fun power(watts: Int?): String = watts?.let { "$it W" } ?: "—"
 
