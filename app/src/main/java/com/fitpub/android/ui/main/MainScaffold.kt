@@ -66,6 +66,7 @@ fun MainScaffold(
 
     val unitSystem by appViewModel.unitSystem.collectAsState()
     val sessionState by appViewModel.uiState.collectAsState()
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         bottomBar = {
@@ -103,9 +104,16 @@ fun MainScaffold(
                 container = container,
                 unitSystem = unitSystem,
                 guestMode = sessionState.guest,
+                modifier = modifier,
                 onOpenActivity = onOpenActivity,
                 onOpenProfile = onOpenProfile,
                 onOpenCreate = onOpenCreate,
+                onRequireSignIn = {
+                    scope.launch {
+                        // Clearing the guest flag switches to the auth flow.
+                        container.sessionStore.clearGuest()
+                    }
+                },
             )
             Routes.BottomTab.SEARCH_TAB -> DiscoverTabContent(
                 container = container,
@@ -148,6 +156,7 @@ fun MainScaffold(
                     onEditProfile = onOpenEditProfile,
                     onOpenSettings = onOpenSettings,
                     modifier = modifier,
+                    onOpenCreate = onOpenCreate,
                 )
             }
         }

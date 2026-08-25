@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -133,6 +134,7 @@ fun ProfileScreen(
     onEditProfile: () -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenCreate: () -> Unit = {},
 ) {
     val vm: ProfileViewModel = viewModel(
         key = username,
@@ -161,11 +163,15 @@ fun ProfileScreen(
     if (embedded) {
         androidx.compose.foundation.layout.Box(modifier.fillMaxSize()) {
             content(Modifier.fillMaxSize())
-            IconButton(
-                onClick = onOpenSettings,
+            androidx.compose.foundation.layout.Row(
                 modifier = Modifier.align(Alignment.TopEnd),
             ) {
-                Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                IconButton(onClick = onOpenCreate) {
+                    Icon(Icons.Filled.Add, contentDescription = "New activity")
+                }
+                IconButton(onClick = onOpenSettings) {
+                    Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                }
             }
         }
     } else {

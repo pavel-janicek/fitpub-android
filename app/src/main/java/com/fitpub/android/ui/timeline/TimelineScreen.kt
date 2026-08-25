@@ -131,9 +131,11 @@ fun TimelineScreen(
     container: AppContainer,
     unitSystem: String,
     guestMode: Boolean = false,
+    modifier: Modifier = Modifier,
     onOpenActivity: (String) -> Unit,
     onOpenProfile: (String) -> Unit,
     onOpenCreate: () -> Unit,
+    onRequireSignIn: () -> Unit = {},
 ) {
     val vm: TimelineViewModel = viewModel(factory = TimelineViewModel.factory(container))
     val ui by vm.ui.collectAsState()
@@ -142,6 +144,7 @@ fun TimelineScreen(
     val serverUrl = ui.serverUrl
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = { Text("FitPub") },
@@ -153,10 +156,15 @@ fun TimelineScreen(
             )
         },
         floatingActionButton = {
-            if (!guestMode) {
-                FloatingActionButton(onClick = onOpenCreate) {
-                    Icon(Icons.Filled.Add, contentDescription = "New activity")
-                }
+            // Guests see the same FAB; tapping it takes them to sign-in since
+            // posting requires an account.
+            FloatingActionButton(
+                onClick = if (guestMode) onRequireSignIn else onOpenCreate,
+            ) {
+                Icon(
+                    Icons.Filled.Add,
+                    contentDescription = if (guestMode) "Sign in to add an activity" else "New activity",
+                )
             }
         },
     ) { padding ->
