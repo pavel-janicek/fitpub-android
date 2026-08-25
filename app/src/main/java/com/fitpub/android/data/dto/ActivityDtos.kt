@@ -181,3 +181,72 @@ data class ManualActivityRequest(
     val visibility: String? = null,
     val startLocationId: Int? = null,
 )
+
+// ---------------------------------------------------------------------------
+// Track / GeoJSON (source of truth for rendering the activity on a map)
+// ---------------------------------------------------------------------------
+
+/** A GPS track point, either raw (from trackPoints) or parsed from GeoJSON. */
+@Serializable
+data class TrackPointDto(
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val elevation: Double? = null,
+    val privacySegment: Int = 0,
+)
+
+/** Response of GET /api/activities/{id}/track (GeoJSON FeatureCollection). */
+@Serializable
+data class TrackFeatureCollectionDto(
+    val type: String? = null,
+    val features: List<TrackFeatureDto> = emptyList(),
+)
+
+@Serializable
+data class TrackFeatureDto(
+    val type: String? = null,
+    val geometry: TrackGeometryDto? = null,
+    val properties: TrackPropertiesDto? = null,
+)
+
+@Serializable
+data class TrackGeometryDto(
+    val type: String? = null,
+    val coordinates: kotlinx.serialization.json.JsonElement? = null,
+)
+
+@Serializable
+data class TrackPropertiesDto(
+    val title: String? = null,
+    val activityType: String? = null,
+    val distance: Double? = null,
+    val duration: Long? = null,
+)
+
+// ---------------------------------------------------------------------------
+// Activity update (title / description / visibility / type)
+// ---------------------------------------------------------------------------
+
+@Serializable
+data class ActivityUpdateRequest(
+    val title: String,
+    val description: String? = null,
+    val visibility: String? = null,
+    val activityType: String? = null,
+    val context: String? = null,
+    val indoor: Boolean? = null,
+    val expectedUpdatedAt: String? = null,
+)
+
+// ---------------------------------------------------------------------------
+// Locations
+// ---------------------------------------------------------------------------
+
+@Serializable
+data class LocationSuggestionDto(
+    val id: Int? = null,
+    val name: String? = null,
+    val adminArea: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+)

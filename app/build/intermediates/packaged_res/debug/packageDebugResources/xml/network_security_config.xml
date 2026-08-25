@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Allows plain HTTP for self-hosted FitPub instances (e.g. http://localhost:8080
+  or a LAN address). Cleartext is also enabled at the application level. If you
+  only ever talk HTTPS, you can remove this file and the attribute in the manifest.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
