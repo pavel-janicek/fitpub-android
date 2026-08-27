@@ -87,7 +87,10 @@ private fun AuthorCard(
     androidx.compose.material3.Card(modifier = Modifier.fillMaxWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(10.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(if (!username.isNullOrBlank()) Modifier.clickable { onOpenProfile(username) } else Modifier)
+                .padding(10.dp),
         ) {
             com.fitpub.android.ui.components.UserAvatar(
                 avatarUrl = avatarUrl,
@@ -97,8 +100,7 @@ private fun AuthorCard(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = 10.dp)
-                    .then(if (!username.isNullOrBlank()) Modifier.clickable { onOpenProfile(username) } else Modifier),
+                    .padding(start = 10.dp),
             ) {
                 Text(
                     displayName ?: username ?: "Athlete",
