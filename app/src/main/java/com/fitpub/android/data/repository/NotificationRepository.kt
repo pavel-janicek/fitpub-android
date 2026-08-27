@@ -17,7 +17,7 @@ class NotificationRepository(
             }
             ApiResult.Success(response.body()?.content ?: emptyList())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -29,7 +29,7 @@ class NotificationRepository(
             }
             ApiResult.Success(response.body()?.count ?: 0)
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -39,7 +39,7 @@ class NotificationRepository(
             if (response.isSuccessful) ApiResult.Success(Unit)
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -49,7 +49,7 @@ class NotificationRepository(
             if (response.isSuccessful) ApiResult.Success(Unit)
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 

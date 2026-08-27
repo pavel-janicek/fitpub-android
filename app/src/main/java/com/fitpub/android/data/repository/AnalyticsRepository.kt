@@ -22,7 +22,7 @@ class AnalyticsRepository(
             }
             ApiResult.Success(response.body() ?: DashboardDto())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -34,7 +34,7 @@ class AnalyticsRepository(
             }
             ApiResult.Success(response.body() ?: emptyList())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -46,7 +46,7 @@ class AnalyticsRepository(
             }
             ApiResult.Success(response.body() ?: emptyList())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -58,7 +58,7 @@ class AnalyticsRepository(
             }
             ApiResult.Success(response.body() ?: emptyList())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -70,7 +70,7 @@ class AnalyticsRepository(
             }
             ApiResult.Success(response.body() ?: FormStatusDto())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -82,7 +82,7 @@ class AnalyticsRepository(
             }
             ApiResult.Success(response.body() ?: emptyList())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -94,7 +94,7 @@ class AnalyticsRepository(
             }
             ApiResult.Success(response.body() ?: emptyList())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 

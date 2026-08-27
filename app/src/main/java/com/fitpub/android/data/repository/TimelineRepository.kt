@@ -31,7 +31,7 @@ class TimelineRepository(private val api: FitPubApi) {
             }
             ApiResult.Success(response.body()?.content ?: emptyList())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 

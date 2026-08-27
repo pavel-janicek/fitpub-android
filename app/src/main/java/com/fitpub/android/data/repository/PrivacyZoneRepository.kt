@@ -19,7 +19,7 @@ class PrivacyZoneRepository(
             }
             ApiResult.Success(response.body() ?: emptyList())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -33,7 +33,7 @@ class PrivacyZoneRepository(
             }
             ApiResult.Success(response.body() ?: error("Empty privacy zone response"))
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -48,7 +48,7 @@ class PrivacyZoneRepository(
             }
             ApiResult.Success(response.body() ?: error("Empty privacy zone response"))
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -60,7 +60,7 @@ class PrivacyZoneRepository(
             }
             ApiResult.Success(response.body() ?: error("Empty privacy zone response"))
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -70,7 +70,7 @@ class PrivacyZoneRepository(
             if (response.isSuccessful) ApiResult.Success(Unit)
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 }

@@ -62,7 +62,7 @@ class ApiClient(
                 val builder = original.newBuilder()
                     .url(newUrl)
                     .header("Accept", "application/json")
-                    .header("User-Agent", "FitPub-Android/0.1.0")
+                    .header("User-Agent", "FitPub-Android/${BuildConfig.VERSION_NAME}")
 
                 if (session.isLoggedIn) {
                     builder.header("Authorization", "Bearer ${session.token}")

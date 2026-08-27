@@ -36,7 +36,7 @@ open class AuthRepository(
             )
             ApiResult.Success(body)
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -60,7 +60,7 @@ open class AuthRepository(
             )
             ApiResult.Success(body)
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -74,7 +74,7 @@ open class AuthRepository(
             if (response.isSuccessful) ApiResult.Success(response.body() ?: RegistrationStatusResponse())
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
     suspend fun requestPasswordReset(usernameOrEmail: String): ApiResult<Unit> =
@@ -96,7 +96,7 @@ open class AuthRepository(
             )
             ApiResult.Success(body)
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -119,7 +119,7 @@ open class AuthRepository(
             if (response.isSuccessful) ApiResult.Success(Unit)
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
         // The account is gone (or unreachable); drop local credentials either way.
         sessionStore.logout()

@@ -34,7 +34,7 @@ class ActivityRepository(
             }
             ApiResult.Success(response.body() ?: error("Empty activity response"))
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -46,7 +46,7 @@ class ActivityRepository(
             }
             ApiResult.Success(response.body() ?: error("Empty update response"))
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -56,7 +56,7 @@ class ActivityRepository(
             if (response.isSuccessful) ApiResult.Success(Unit)
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -68,7 +68,7 @@ class ActivityRepository(
             }
             ApiResult.Success(response.body() ?: PageEnvelopeActivitySummaryDto())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -80,7 +80,7 @@ class ActivityRepository(
             }
             ApiResult.Success(response.body() ?: TrackFeatureCollectionDto())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -92,7 +92,7 @@ class ActivityRepository(
             }
             ApiResult.Success(response.body() ?: error("Empty manual activity response"))
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -124,7 +124,7 @@ class ActivityRepository(
             }
             ApiResult.Success(response.body() ?: error("Empty upload response"))
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -136,7 +136,7 @@ class ActivityRepository(
             }
             ApiResult.Success(response.body() ?: emptyList())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -150,7 +150,7 @@ class ActivityRepository(
             }
             ApiResult.Success(response.body() ?: PageEnvelopeCommentDto())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -162,7 +162,7 @@ class ActivityRepository(
             }
             ApiResult.Success(response.body() ?: error("Empty comment response"))
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -172,7 +172,7 @@ class ActivityRepository(
             if (response.isSuccessful) ApiResult.Success(Unit)
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -186,7 +186,7 @@ class ActivityRepository(
             }
             ApiResult.Success(response.body() ?: emptyList())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -198,7 +198,7 @@ class ActivityRepository(
             }
             ApiResult.Success(response.body() ?: error("Empty reaction response"))
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -208,7 +208,7 @@ class ActivityRepository(
             if (response.isSuccessful) ApiResult.Success(Unit)
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 

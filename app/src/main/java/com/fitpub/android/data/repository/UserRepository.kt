@@ -29,7 +29,7 @@ class UserRepository(
             }
             ApiResult.Success(response.body() ?: error("Empty user response"))
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -41,7 +41,7 @@ class UserRepository(
             }
             ApiResult.Success(response.body() ?: error("Empty profile response"))
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -53,7 +53,7 @@ class UserRepository(
             }
             ApiResult.Success(response.body() ?: error("Empty update response"))
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -63,7 +63,7 @@ class UserRepository(
             if (response.isSuccessful) ApiResult.Success(Unit)
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -101,7 +101,7 @@ class UserRepository(
                 ApiResult.Success(UserSearchResultDto(content = merged))
             }
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -121,7 +121,7 @@ class UserRepository(
             }
             ApiResult.Success(response.body() ?: UserSearchResultDto())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -133,7 +133,7 @@ class UserRepository(
             }
             ApiResult.Success(response.body() ?: FollowStatusDto())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -143,7 +143,7 @@ class UserRepository(
             if (response.isSuccessful) ApiResult.Success(Unit)
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -153,7 +153,7 @@ class UserRepository(
             if (response.isSuccessful) ApiResult.Success(Unit)
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -163,7 +163,7 @@ class UserRepository(
             if (response.isSuccessful) ApiResult.Success(Unit)
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -173,7 +173,7 @@ class UserRepository(
             if (response.isSuccessful) ApiResult.Success(Unit)
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -185,7 +185,7 @@ class UserRepository(
             }
             ApiResult.Success(response.body() ?: EmailChangeStatusResponse())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -197,7 +197,7 @@ class UserRepository(
             }
             ApiResult.Success(response.body() ?: emptyList())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -209,7 +209,7 @@ class UserRepository(
             }
             ApiResult.Success(response.body() ?: emptyList())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -227,7 +227,7 @@ class UserRepository(
             }
             ApiResult.Success(response.body() ?: error("Empty avatar response"))
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -237,7 +237,7 @@ class UserRepository(
             if (response.isSuccessful) ApiResult.Success(Unit)
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -251,7 +251,7 @@ class UserRepository(
             }
             ApiResult.Success(response.body() ?: HeatmapResponse())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -269,7 +269,7 @@ class UserRepository(
             }
             ApiResult.Success(response.body() ?: error("Empty profile-header response"))
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -279,7 +279,7 @@ class UserRepository(
             if (response.isSuccessful) ApiResult.Success(Unit)
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 
@@ -289,7 +289,7 @@ class UserRepository(
             if (response.isSuccessful) ApiResult.Success(Unit)
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
     }
 

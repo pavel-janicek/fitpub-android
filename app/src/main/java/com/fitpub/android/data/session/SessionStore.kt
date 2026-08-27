@@ -7,8 +7,13 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 /**
  * Immutable snapshot of the session the app currently holds. The [serverUrl] is the
@@ -32,24 +37,43 @@ private val Context.fitPubDataStore: DataStore<Preferences> by preferencesDataSt
 
 /**
  * Persists the currently selected FitPub instance and (if logged in) the JWT bearer
- * token plus cached identity fields. Tokens are held in plain app-private storage;
- * consider encrypting with EncryptedSharedPreferences in a hardened build.
+ * token plus cached identity fields. Non-sensitive data is stored in DataStore,
+ * while the auth token is stored in EncryptedSharedPreferences.
  */
 class SessionStore(private val context: Context) {
 
+    private val masterKey = MasterKey.Builder(context)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+
+    private val encryptedPrefs = EncryptedSharedPreferences.create(
+        context,
+        "fitpub_secure_session",
+        masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
+
     private object Keys {
         val SERVER_URL = stringPreferencesKey("server_url")
-        val TOKEN = stringPreferencesKey("token")
+        // Token is now in EncryptedSharedPreferences
         val USERNAME = stringPreferencesKey("username")
         val DISPLAY_NAME = stringPreferencesKey("display_name")
         val EMAIL = stringPreferencesKey("email")
         val GUEST = booleanPreferencesKey("guest")
     }
 
-    val session: Flow<Session> = context.fitPubDataStore.data.map { prefs ->
+    private val tokenFlow: Flow<String> = context.fitPubDataStore.data.map {
+        encryptedPrefs.getString("token", "") ?: ""
+    }
+
+    val session: Flow<Session> = combine(
+        context.fitPubDataStore.data,
+        tokenFlow
+    ) { prefs, token ->
         Session(
             serverUrl = prefs[Keys.SERVER_URL] ?: "",
-            token = prefs[Keys.TOKEN] ?: "",
+            token = token,
             username = prefs[Keys.USERNAME] ?: "",
             displayName = prefs[Keys.DISPLAY_NAME] ?: "",
             email = prefs[Keys.EMAIL] ?: "",
@@ -68,8 +92,10 @@ class SessionStore(private val context: Context) {
         displayName: String?,
         email: String?,
     ) {
+        withContext(Dispatchers.IO) {
+            encryptedPrefs.edit().putString("token", token).apply()
+        }
         context.fitPubDataStore.edit {
-            it[Keys.TOKEN] = token
             it[Keys.USERNAME] = username
             it[Keys.DISPLAY_NAME] = displayName.orEmpty()
             it[Keys.EMAIL] = email.orEmpty()
@@ -82,9 +108,11 @@ class SessionStore(private val context: Context) {
      * stay browsable without an account.
      */
     suspend fun continueAsGuest() {
+        withContext(Dispatchers.IO) {
+            encryptedPrefs.edit().remove("token").apply()
+        }
         context.fitPubDataStore.edit {
             it[Keys.SERVER_URL] = DEFAULT_SERVER_URL
-            it.remove(Keys.TOKEN)
             it[Keys.GUEST] = true
         }
     }
@@ -94,8 +122,10 @@ class SessionStore(private val context: Context) {
      * its URL (used by "Browse without an account" on the login screen).
      */
     suspend fun startGuestBrowsing() {
+        withContext(Dispatchers.IO) {
+            encryptedPrefs.edit().remove("token").apply()
+        }
         context.fitPubDataStore.edit {
-            it.remove(Keys.TOKEN)
             it[Keys.GUEST] = true
         }
     }
@@ -109,8 +139,10 @@ class SessionStore(private val context: Context) {
     }
 
     suspend fun logout() {
+        withContext(Dispatchers.IO) {
+            encryptedPrefs.edit().remove("token").apply()
+        }
         context.fitPubDataStore.edit {
-            it.remove(Keys.TOKEN)
             it.remove(Keys.USERNAME)
             it.remove(Keys.DISPLAY_NAME)
             it.remove(Keys.EMAIL)
