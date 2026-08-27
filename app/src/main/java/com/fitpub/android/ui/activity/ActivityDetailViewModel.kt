@@ -47,6 +47,8 @@ import kotlinx.coroutines.launch
 
 class ActivityDetailViewModel(
     private val activities: com.fitpub.android.data.repository.ActivityRepository,
+    private val users: com.fitpub.android.data.repository.UserRepository,
+    private val appViewModel: com.fitpub.android.ui.AppViewModel,
 ) : ViewModel() {
 
     data class UiState(
@@ -56,6 +58,9 @@ class ActivityDetailViewModel(
         val track: TrackFeatureCollectionDto? = null,
         val likes: List<LikeDto> = emptyList(),
         val comments: List<CommentDto> = emptyList(),
+        /** Follow relationship with the activity's owner; null for own activities or while loading. */
+        val followStatus: com.fitpub.android.data.dto.FollowStatusDto? = null,
+        val followBusy: Boolean = false,
     )
 
     private val _ui = MutableStateFlow(UiState())
@@ -70,8 +75,40 @@ class ActivityDetailViewModel(
                     loadTrack(activityId)
                     loadComments(activityId)
                     loadLikes(activityId)
+                    loadFollowStatus()
                 }
                 is ApiResult.Error -> _ui.value = _ui.value.copy(loading = false, error = r.message)
+            }
+        }
+    }
+
+    private suspend fun loadFollowStatus() {
+        val owner = _ui.value.activity?.username
+        if (owner.isNullOrBlank() || owner == appViewModel.uiState.value.username) {
+            _ui.value = _ui.value.copy(followStatus = null)
+            return
+        }
+        when (val f = users.followStatus(owner)) {
+            is ApiResult.Success -> _ui.value = _ui.value.copy(followStatus = f.data)
+            else -> Unit
+        }
+    }
+
+    fun toggleFollow() {
+        val owner = _ui.value.activity?.username ?: return
+        val status = _ui.value.followStatus ?: return
+        viewModelScope.launch {
+            _ui.value = _ui.value.copy(followBusy = true)
+            val result = if (status.isFollowing || status.canUnfollow) users.unfollow(owner) else users.follow(owner)
+            when (result) {
+                is ApiResult.Success -> {
+                    // Re-fetch authoritative state instead of guessing flags client-side.
+                    when (val f = users.followStatus(owner)) {
+                        is ApiResult.Success -> _ui.value = _ui.value.copy(followStatus = f.data, followBusy = false)
+                        else -> _ui.value = _ui.value.copy(followBusy = false)
+                    }
+                }
+                is ApiResult.Error -> _ui.value = _ui.value.copy(followBusy = false, error = result.message)
             }
         }
     }
@@ -130,8 +167,14 @@ class ActivityDetailViewModel(
         TrackParser.fromFeatureCollection(_ui.value.track)
 
     companion object {
-        fun factory(container: AppContainer): ViewModelProvider.Factory = viewModelFactory {
-            initializer { ActivityDetailViewModel(container.activityRepository) }
+        fun factory(container: AppContainer, appViewModel: com.fitpub.android.ui.AppViewModel): ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                ActivityDetailViewModel(
+                    container.activityRepository,
+                    container.userRepository,
+                    appViewModel,
+                )
+            }
         }
     }
 }

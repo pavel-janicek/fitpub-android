@@ -125,30 +125,6 @@ class UserRepository(
         }
     }
 
-    suspend fun followers(username: String): ApiResult<List<UserDto>> {
-        return try {
-            val response = api.followers(username)
-            if (!response.isSuccessful) {
-                return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
-            }
-            ApiResult.Success(response.body() ?: emptyList())
-        } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
-        }
-    }
-
-    suspend fun following(username: String): ApiResult<List<UserDto>> {
-        return try {
-            val response = api.following(username)
-            if (!response.isSuccessful) {
-                return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
-            }
-            ApiResult.Success(response.body() ?: emptyList())
-        } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error", throwable = e)
-        }
-    }
-
     suspend fun followStatus(username: String): ApiResult<FollowStatusDto> {
         return try {
             val response = api.followStatus(username)
@@ -208,6 +184,30 @@ class UserRepository(
                 return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
             }
             ApiResult.Success(response.body() ?: EmailChangeStatusResponse())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error", throwable = e)
+        }
+    }
+
+    suspend fun followers(username: String, page: Int = 0, size: Int = 50): ApiResult<List<UserDto>> {
+        return try {
+            val response = api.followers(username.trim().removePrefix("@"), page = page, size = size)
+            if (!response.isSuccessful) {
+                return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
+            }
+            ApiResult.Success(response.body() ?: emptyList())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error", throwable = e)
+        }
+    }
+
+    suspend fun following(username: String, page: Int = 0, size: Int = 50): ApiResult<List<UserDto>> {
+        return try {
+            val response = api.following(username.trim().removePrefix("@"), page = page, size = size)
+            if (!response.isSuccessful) {
+                return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
+            }
+            ApiResult.Success(response.body() ?: emptyList())
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Network error", throwable = e)
         }

@@ -1,5 +1,6 @@
 package com.fitpub.android.ui.profile
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -110,12 +112,23 @@ class ProfileViewModel(
     }
 
     fun toggleFollow() {
-        val status = _ui.value.followStatus ?: return
         val target = _ui.value.user?.username ?: return
+        val status = _ui.value.followStatus
         viewModelScope.launch {
-            _ui.value = _ui.value.copy(busy = true)
-            val result = if (status.canUnfollow || status.isFollowing) users.unfollow(target) else users.follow(target)
-            if (result is ApiResult.Success) load(target) else _ui.value = _ui.value.copy(busy = false)
+            _ui.value = _ui.value.copy(busy = true, error = null)
+            // No cached follow status (e.g. it failed to load): try to follow directly.
+            val result = if (status == null || !(status.isFollowing || status.canUnfollow)) {
+                users.follow(target)
+            } else {
+                users.unfollow(target)
+            }
+            // busy MUST be cleared before/when reloading — previously it stayed true on
+            // success, which permanently disabled ("grayed out") the follow button.
+            _ui.value = _ui.value.copy(busy = false)
+            when (result) {
+                is ApiResult.Success -> load(target)
+                is ApiResult.Error -> _ui.value = _ui.value.copy(error = result.message)
+            }
         }
     }
 
@@ -141,6 +154,8 @@ fun ProfileScreen(
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
     onOpenCreate: () -> Unit = {},
+    onOpenFollowers: (String) -> Unit = {},
+    onOpenFollowing: (String) -> Unit = {},
 ) {
     val vm: ProfileViewModel = viewModel(
         key = username,
@@ -172,6 +187,7 @@ fun ProfileScreen(
             else -> ProfileBody(
                 ui = ui, isMe = isMe, serverUrl = serverUrl, unitSystem = unitSystem,
                 onOpenActivity = onOpenActivity, onToggleFollow = vm::toggleFollow,
+                onOpenFollowers = onOpenFollowers, onOpenFollowing = onOpenFollowing,
                 onEditProfile = onEditProfile,
                 modifier = modifier,
             )
@@ -218,7 +234,34 @@ fun ProfileScreen(
         }
     }
 }
-@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StatPill(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+) {
+    Surface(
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = modifier
+            .padding(horizontal = 4.dp)
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(value, style = MaterialTheme.typography.titleMedium)
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
 @Composable
 private fun ProfileBody(
     ui: ProfileViewModel.UiState,
@@ -227,6 +270,8 @@ private fun ProfileBody(
     unitSystem: String,
     onOpenActivity: (String) -> Unit,
     onToggleFollow: () -> Unit,
+    onOpenFollowers: (String) -> Unit = {},
+    onOpenFollowing: (String) -> Unit = {},
     onEditProfile: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -243,16 +288,29 @@ private fun ProfileBody(
                 Text("@${user.username}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (!user.bio.isNullOrBlank()) {
                     Spacer(Modifier.height(6.dp))
-                    Text(user.bio, style = MaterialTheme.typography.bodyMedium)
+                    // Bios come back HTML-encoded (e.g. emoticons as &#x1F609;) — decode
+                    // them so Compose renders the same characters as the web client.
+                    Text(Format.decodeHtml(user.bio) ?: user.bio, style = MaterialTheme.typography.bodyMedium)
                 }
                 Spacer(Modifier.height(12.dp))
-                StatRow(
-                    listOf(
-                        "Activities" to (user.activityCount ?: 0).toString(),
-                        "Followers" to (user.followersCount ?: 0).toString(),
-                        "Following" to (user.followingCount ?: 0).toString(),
-                    ),
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                ) {
+                    StatPill("Activities", (user.activityCount ?: 0).toString(), Modifier.weight(1f))
+                    StatPill(
+                        "Followers",
+                        (user.followersCount ?: 0).toString(),
+                        Modifier.weight(1f),
+                        onClick = { onOpenFollowers(user.username ?: "me") },
+                    )
+                    StatPill(
+                        "Following",
+                        (user.followingCount ?: 0).toString(),
+                        Modifier.weight(1f),
+                        onClick = { onOpenFollowing(user.username ?: "me") },
+                    )
+                }
                 if (isMe) {
                     OutlinedButton(onClick = onEditProfile, modifier = Modifier.fillMaxWidth()) { Text("Edit profile") }
                 } else {

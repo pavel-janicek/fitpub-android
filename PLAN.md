@@ -71,7 +71,8 @@ Progress ledger (kept up to date per iteration):
 | **0.4.1 (current)** | Patch — activity descriptions now shown on timeline cards (were dropped by ActivityCard) | ✅ done |
 | **0.4.2** | Patch — web parity in Edit profile: avatar upload/remove, time-zone picker (bio & profile header already editable) | ✅ done |
 | **0.4.3** | Patch — bio changes now visible on Me tab after saving (stale-cache fix); Analytics redesign: scrollable tab row + weekly-distance bar chart on Overview | ✅ done |
-| **0.4.4 (current)** | Patch — activity speed shown 3.6× too high: API's `metrics.averageSpeed` is km/h (verified against live instance), Format now interprets it as such + imperial conversion fixed | ✅ done |
+| **0.4.4** | Patch — activity speed shown 3.6× too high: API's `metrics.averageSpeed` is km/h (verified against live instance), Format now interprets it as such + imperial conversion fixed | ✅ done |
+| **0.4.5 (current)** | Patch — following: author tap opens profile from timeline cards & activity detail header; Follow/Unfollow button on activity detail; unfollow-button stuck-gray fixed (busy flag never reset); clickable Followers/Following stat pills with new FollowListScreen (follow/unfollow inline); bio emoticons rendered (HTML-entity decode) | ✅ done |
 | 0.5.0 | Iteration 5 — tests & CI | ⬜ |
 | 0.6.0 | Iteration 6 — release hardening (token encryption, R8, signing) | ⬜ |
 | **1.0** | All of the above → first stable release | ⬜ |

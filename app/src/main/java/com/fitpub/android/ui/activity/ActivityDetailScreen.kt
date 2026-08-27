@@ -56,7 +56,7 @@ fun ActivityDetailScreen(
     onBack: () -> Unit,
     onOpenProfile: (String) -> Unit,
 ) {
-    val vm: ActivityDetailViewModel = viewModel(factory = ActivityDetailViewModel.factory(container))
+    val vm: ActivityDetailViewModel = viewModel(factory = ActivityDetailViewModel.factory(container, appViewModel))
     val ui by vm.ui.collectAsState()
     val unitSystem by appViewModel.unitSystem.collectAsState()
     LaunchedEffect(activityId) { vm.load(activityId) }
@@ -81,6 +81,7 @@ fun ActivityDetailScreen(
                 viewModel = vm,
                 ui = ui,
                 unitSystem = unitSystem,
+                onOpenProfile = onOpenProfile,
             )
         }
     }

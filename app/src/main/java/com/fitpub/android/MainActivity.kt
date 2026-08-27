@@ -187,6 +187,8 @@ private fun FitPubNavGraph(
                 onOpenCreate = { navController.navigate(Routes.CREATE) },
                 onOpenEditProfile = { navController.navigate(Routes.EDIT_PROFILE) },
                 onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                onOpenFollowers = { username -> navController.navigate(Routes.followList(username, "followers")) },
+                onOpenFollowing = { username -> navController.navigate(Routes.followList(username, "following")) },
             )
         }
         composable(
@@ -216,6 +218,8 @@ private fun FitPubNavGraph(
                 onOpenActivity = { id -> navController.navigate(Routes.activityDetail(id)) },
                 onEditProfile = { navController.navigate(Routes.EDIT_PROFILE) },
                 onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                onOpenFollowers = { u -> navController.navigate(Routes.followList(u, "followers")) },
+                onOpenFollowing = { u -> navController.navigate(Routes.followList(u, "following")) },
             )
         }
         composable(Routes.CREATE) {
@@ -265,6 +269,20 @@ private fun FitPubNavGraph(
                 container = container,
                 appViewModel = appViewModel,
                 onBack = { navController.popBackStack() },
+            )
+        }
+        composable(
+            route = Routes.FOLLOW_LIST,
+            arguments = listOf(navArgument("username") { }, navArgument("type") { }),
+        ) { entry ->
+            val username = entry.arguments?.getString("username").orEmpty()
+            val type = entry.arguments?.getString("type").orEmpty()
+            com.fitpub.android.ui.profile.FollowListScreen(
+                container = container,
+                username = username,
+                type = type,
+                onBack = { navController.popBackStack() },
+                onOpenProfile = { navController.navigate(Routes.profile(it)) },
             )
         }
     }

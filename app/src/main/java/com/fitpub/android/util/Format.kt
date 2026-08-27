@@ -80,7 +80,21 @@ object Format {
 
     fun heartRate(bpm: Int?): String = bpm?.let { "$it bpm" } ?: "—"
 
-    fun power(watts: Int?): String = watts?.let { "$it W" } ?: "—"
+    /**
+     * Decodes HTML entities (&#x1f609;, &amp;, …) that the server stores raw in
+     * user-entered text (bio, descriptions). The web app renders these through the
+     * browser, which decodes them automatically; Compose Text shows them literally,
+     * so we decode explicitly to match web rendering.
+     */
+    fun decodeHtml(text: String?): String? {
+        if (text.isNullOrBlank()) return text
+        return try {
+            android.text.Html.fromHtml(text, android.text.Html.FROM_HTML_MODE_LEGACY).toString().trim()
+        } catch (_: Exception) {
+            text
+        }
+    }
+
 
     fun cadence(rpm: Int?): String = rpm?.let { "$it spm" } ?: "—"
 

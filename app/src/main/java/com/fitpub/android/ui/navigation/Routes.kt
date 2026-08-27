@@ -15,9 +15,11 @@ object Routes {
     const val PRIVACY_ZONES = "privacy_zones"
     const val SETTINGS = "settings"
     const val BATCH_IMPORT = "batch_import"
+    const val FOLLOW_LIST = "follow_list/{username}/{type}"
 
     fun activityDetail(activityId: String) = "activity/$activityId"
     fun profile(username: String) = "profile/$username"
+    fun followList(username: String, type: String) = "follow_list/$username/$type"
 
     /** Bottom navigation destinations shown on the main scaffold. */
     enum class BottomTab(

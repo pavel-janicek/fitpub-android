@@ -215,6 +215,7 @@ fun TimelineScreen(
                                 serverUrl = serverUrl,
                                 unitSystem = unitSystem,
                                 onClick = { onOpenActivity(activity.id) },
+                                onAuthorClick = { activity.username?.let(onOpenProfile) },
                             )
                         }
                     }

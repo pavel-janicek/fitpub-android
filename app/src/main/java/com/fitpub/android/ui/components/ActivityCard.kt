@@ -32,7 +32,7 @@ import com.fitpub.android.util.Format
 import com.fitpub.android.util.UrlBuilder
 
 @Composable
-fun ActivityCard(activity: TimelineActivityDto, serverUrl: String, unitSystem: String, onClick: () -> Unit) {
+fun ActivityCard(activity: TimelineActivityDto, serverUrl: String, unitSystem: String, onClick: () -> Unit, onAuthorClick: (() -> Unit)? = null) {
     Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp), shape = RoundedCornerShape(16.dp)) {
         Column(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -53,6 +53,7 @@ fun ActivityCard(activity: TimelineActivityDto, serverUrl: String, unitSystem: S
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = if (onAuthorClick != null) Modifier.clickable(onClick = onAuthorClick) else Modifier,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )

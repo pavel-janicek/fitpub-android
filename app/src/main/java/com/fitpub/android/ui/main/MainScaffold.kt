@@ -55,6 +55,8 @@ fun MainScaffold(
     onOpenCreate: () -> Unit,
     onOpenEditProfile: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenFollowers: (String) -> Unit = {},
+    onOpenFollowing: (String) -> Unit = {},
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(Routes.BottomTab.TIMELINE.name) }
 
@@ -157,6 +159,8 @@ fun MainScaffold(
                     onOpenSettings = onOpenSettings,
                     modifier = modifier,
                     onOpenCreate = onOpenCreate,
+                    onOpenFollowers = onOpenFollowers,
+                    onOpenFollowing = onOpenFollowing,
                 )
             }
         }

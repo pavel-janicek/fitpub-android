@@ -1,5 +1,6 @@
 package com.fitpub.android.ui.activity
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,7 @@ internal fun DetailBody(
     viewModel: ActivityDetailViewModel,
     ui: ActivityDetailViewModel.UiState,
     unitSystem: String,
+    onOpenProfile: (String) -> Unit = {},
 ) {
     val activity = ui.activity ?: return
     LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -35,13 +37,27 @@ internal fun DetailBody(
                         style = MaterialTheme.typography.headlineMedium,
                     )
                     Spacer(Modifier.padding(start = 10.dp))
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(activity.title ?: Format.uppercaseFirst(activity.activityType), style = MaterialTheme.typography.titleLarge)
                         Text(
                             "${activity.displayName ?: activity.username ?: ""} · ${Format.dateTime(activity.startedAt)}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.then(
+                                if (!activity.username.isNullOrBlank()) {
+                                    Modifier.clickable { onOpenProfile(activity.username!!) }
+                                } else Modifier,
+                            ),
                         )
+                    }
+                    // Follow/unfollow right from the activity view (hidden on own activities).
+                    if (ui.followStatus != null) {
+                        androidx.compose.material3.OutlinedButton(
+                            onClick = { viewModel.toggleFollow() },
+                            enabled = !ui.followBusy,
+                        ) {
+                            Text(if (ui.followStatus?.isFollowing == true || ui.followStatus?.canUnfollow == true) "Unfollow" else "Follow")
+                        }
                     }
                 }
                 if (!activity.description.isNullOrBlank()) {
