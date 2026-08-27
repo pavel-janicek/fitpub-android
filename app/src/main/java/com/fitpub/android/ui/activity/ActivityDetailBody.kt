@@ -64,7 +64,7 @@ internal fun DetailBody(
             StatRow(
                 listOf(
                     "Heart rate" to Format.heartRate(activity.metrics?.averageHeartRate),
-                    "Speed" to Format.speed(activity.metrics?.averageSpeed, unitSystem),
+                    "Speed" to Format.speedKmh(activity.metrics?.averageSpeed, unitSystem),
                     "Calories" to Format.calories(activity.metrics?.calories),
                     "Cadence" to Format.cadence(activity.metrics?.averageCadence),
                 ),

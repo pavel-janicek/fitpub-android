@@ -55,14 +55,19 @@ object Format {
         return String.format(Locale.US, "%d:%02d /%s", m, s, unit)
     }
 
-    fun speed(metersPerSecond: Double?, unitSystem: String?): String {
-        if (metersPerSecond == null) return "—"
+    /** Speed in km/h (as returned by the FitPub API) to "36.3 km/h" / "22.6 mph". */
+    fun speedKmh(kmh: Double?, unitSystem: String?): String {
+        if (kmh == null || kmh < 0) return "—"
         return if (unitSystem == "IMPERIAL") {
-            String.format(Locale.US, "%.1f mph", metersPerSecond * 2.236936)
+            String.format(Locale.US, "%.1f mph", kmh * 0.621371)
         } else {
-            String.format(Locale.US, "%.1f km/h", metersPerSecond * 3.6)
+            String.format(Locale.US, "%.1f km/h", kmh)
         }
     }
+
+    /** Converts meters-per-second first; see [speedKmh] for the common API path. */
+    fun speed(metersPerSecond: Double?, unitSystem: String?): String =
+        speedKmh(metersPerSecond?.times(3.6), unitSystem)
 
         fun elevation(meters: Double?, unitSystem: String?): String {
         if (meters == null) return "—"
