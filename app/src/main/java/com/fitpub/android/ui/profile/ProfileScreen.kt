@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
@@ -71,6 +72,10 @@ class ProfileViewModel(
         val activitiesList: List<ActivitySummaryDto> = emptyList(),
         val heatmap: HeatmapResponse? = null,
         val busy: Boolean = false,
+        /** True when the server refused the profile body because it is followers-only. */
+        val isPrivateProfile: Boolean = false,
+        /** Username this screen was opened for; kept so actions work even without a profile body. */
+        val username: String? = null,
     )
 
     private val _ui = MutableStateFlow(UiState())
@@ -78,7 +83,7 @@ class ProfileViewModel(
 
     fun load(username: String) {
         viewModelScope.launch {
-            _ui.value = _ui.value.copy(loading = true, error = null)
+            _ui.value = _ui.value.copy(loading = true, error = null, isPrivateProfile = false, username = username.ifBlank { null })
             var user: UserDto? = null
             var error: String? = null
             when (val r = users.profile(username)) {
@@ -88,21 +93,31 @@ class ProfileViewModel(
                         appViewModel.onProfileLoaded(r.data)
                     }
                 }
-                is ApiResult.Error -> error = r.message
+                is ApiResult.Error -> {
+                    error = r.message
+                    // Private accounts answer 403 ("only visible to followers"). We must NOT
+                    // bail out here — the follow/request-to-follow flow depends on the
+                    // follow-status endpoint which stays callable for such accounts.
+                    _ui.value = _ui.value.copy(
+                        isPrivateProfile = r.statusCode == 403 || r.message?.contains("only visible", ignoreCase = true) == true,
+                    )
+                }
             }
             _ui.value = _ui.value.copy(loading = false, user = user, error = error)
-            if (user == null) return@launch
+            if (user == null && !_ui.value.isPrivateProfile) return@launch
 
             val target = if (username == "me") appViewModel.uiState.value.username else username
-            when (val a = activities.userActivities(target.ifBlank { "me" }, page = 0, size = 20)) {
-                is ApiResult.Success -> _ui.value = _ui.value.copy(activitiesList = a.data.content)
-                else -> Unit
-            }
-            if (target != appViewModel.uiState.value.username && !target.isNullOrBlank()) {
+            if (!target.isNullOrBlank() && target != appViewModel.uiState.value.username) {
                 when (val f = users.followStatus(target)) {
                     is ApiResult.Success -> _ui.value = _ui.value.copy(followStatus = f.data)
                     else -> Unit
                 }
+            }
+            if (user == null) return@launch
+
+            when (val a = activities.userActivities(target.ifBlank { "me" }, page = 0, size = 20)) {
+                is ApiResult.Success -> _ui.value = _ui.value.copy(activitiesList = a.data.content)
+                else -> Unit
             }
             when (val h = users.heatmap(target)) {
                 is ApiResult.Success -> _ui.value = _ui.value.copy(heatmap = h.data)
@@ -112,12 +127,15 @@ class ProfileViewModel(
     }
 
     fun toggleFollow() {
-        val target = _ui.value.user?.username ?: return
+        // On locked (private) profiles there is no user object — fall back to the
+        // username the screen was opened for, otherwise request-to-follow breaks.
+        val target = (_ui.value.user?.username ?: _ui.value.username)?.takeIf { it.isNotBlank() && it != "me" } ?: return
         val status = _ui.value.followStatus
         viewModelScope.launch {
             _ui.value = _ui.value.copy(busy = true, error = null)
             // No cached follow status (e.g. it failed to load): try to follow directly.
-            val result = if (status == null || !(status.isFollowing || status.canUnfollow)) {
+            // A pending request counts as "engaged" too — acting again cancels it.
+            val result = if (status == null || !(status.isFollowing || status.canUnfollow || status.isFollowRequestPending)) {
                 users.follow(target)
             } else {
                 users.unfollow(target)
@@ -183,6 +201,14 @@ fun ProfileScreen(
     val content: @Composable (Modifier) -> Unit = { modifier ->
         when {
             ui.loading && ui.user == null -> LoadingIndicator(modifier)
+            ui.user == null && ui.isPrivateProfile -> LockedProfileBody(
+                username = ui.username ?: username,
+                error = ui.error,
+                status = ui.followStatus,
+                busy = ui.busy,
+                onToggleFollow = vm::toggleFollow,
+                modifier = modifier,
+            )
             ui.error != null && ui.user == null -> ErrorState(message = ui.error, onRetry = { vm.load(username) }, modifier = modifier)
             else -> ProfileBody(
                 ui = ui, isMe = isMe, serverUrl = serverUrl, unitSystem = unitSystem,
@@ -356,6 +382,62 @@ private fun ProfileBody(
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * Shown instead of the full profile when the target account is private and we
+ * are not (yet) approved followers — mirrors the web app's "request to follow" flow.
+ */
+@Composable
+private fun LockedProfileBody(
+    username: String,
+    error: String?,
+    status: FollowStatusDto?,
+    busy: Boolean,
+    onToggleFollow: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxSize().padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Icon(
+            Icons.Filled.Lock,
+            contentDescription = "Private profile",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(12.dp))
+        Text("@$username keeps their profile private", style = MaterialTheme.typography.titleMedium)
+        Text(
+            "Send a follow request to see their activities.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        val following = status?.isFollowing == true || status?.canUnfollow == true
+        Button(
+            onClick = onToggleFollow,
+            enabled = !busy && status != null,
+            modifier = Modifier.padding(top = 16.dp),
+        ) {
+            Text(
+                when {
+                    status?.isFollowRequestPending == true -> "Request sent"
+                    following -> "Unfollow"
+                    else -> "Request to follow"
+                },
+            )
+        }
+        if (error != null) {
+            Text(
+                error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 12.dp),
+            )
         }
     }
 }
