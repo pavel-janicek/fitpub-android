@@ -1,6 +1,7 @@
 package com.fitpub.android.data.dto
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 
 // ---------------------------------------------------------------------------
 // Activities
@@ -34,6 +35,10 @@ data class ActivityDto(
     val avatarUrl: String? = null,
     val user: UserDto? = null,
     val author: UserDto? = null,
+    val owner: UserDto? = null,
+    @SerialName("ownerUsername") val ownerUsername: String? = null,
+    @SerialName("ownerDisplayName") val ownerDisplayName: String? = null,
+    @SerialName("ownerAvatarUrl") val ownerAvatarUrl: String? = null,
     val actorUri: String? = null,
     val isLocal: Boolean = false,
     val simplifiedTrack: GeoJsonGeometry? = null,
@@ -49,9 +54,13 @@ data class ActivityDto(
     val currentUserReaction: String? = null,
     val privacyZones: List<PrivacyZonePreviewDto>? = null,
 ) {
-    val resolvedUsername: String? get() = username ?: author?.username ?: user?.username
-    val resolvedDisplayName: String? get() = displayName ?: author?.displayName ?: user?.displayName
-    val resolvedAvatarUrl: String? get() = avatarUrl ?: author?.avatarUrl ?: user?.avatarUrl
+    val resolvedUsername: String?
+        get() = username ?: ownerUsername ?: author?.username ?: owner?.username ?: user?.username
+            ?: actorUri?.substringAfterLast('/')?.substringBefore('?')?.takeIf { it.isNotBlank() }
+    val resolvedDisplayName: String?
+        get() = displayName ?: ownerDisplayName ?: author?.displayName ?: owner?.displayName ?: user?.displayName
+    val resolvedAvatarUrl: String?
+        get() = avatarUrl ?: ownerAvatarUrl ?: author?.avatarUrl ?: owner?.avatarUrl ?: user?.avatarUrl
 }
 
 @Serializable

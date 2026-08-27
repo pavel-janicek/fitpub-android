@@ -103,6 +103,11 @@ private fun AuthorCard(
                     .padding(start = 10.dp),
             ) {
                 Text(
+                    "Recorded by",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
                     displayName ?: username ?: "Athlete",
                     style = MaterialTheme.typography.titleSmall,
                 )

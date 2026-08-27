@@ -41,4 +41,13 @@ class ActivityDtoTest {
         assertEquals("flat-user", activity.resolvedUsername)
         assertEquals("Flat User", activity.resolvedDisplayName)
     }
+
+      @Test
+      fun actorUriProvidesUsernameFallback() {
+        val activity = Json.decodeFromString<ActivityDto>(
+          "{\"actorUri\":\"https://remote.example/users/remote-runner\"}",
+        )
+
+        assertEquals("remote-runner", activity.resolvedUsername)
+      }
 }
