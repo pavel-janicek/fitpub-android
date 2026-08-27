@@ -106,6 +106,7 @@ fun ActivityDetailScreen(
                 ui = ui,
                 unitSystem = unitSystem,
                 onOpenProfile = onOpenProfile,
+                modifier = Modifier.padding(padding)
             )
         }
     }

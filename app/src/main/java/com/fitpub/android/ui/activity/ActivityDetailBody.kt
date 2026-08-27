@@ -26,9 +26,10 @@ internal fun DetailBody(
     ui: ActivityDetailViewModel.UiState,
     unitSystem: String,
     onOpenProfile: (String) -> Unit = {},
+    modifier: Modifier = Modifier,
 ) {
     val activity = ui.activity ?: return
-    LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    LazyColumn(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(activity.title ?: Format.uppercaseFirst(activity.activityType), style = MaterialTheme.typography.titleLarge)

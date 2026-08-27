@@ -68,7 +68,7 @@ class ActivityDetailViewModel(
         val serverUrl: String = "",
     )
 
-    private val _ui = MutableStateFlow(UiState())
+    private val _ui = MutableStateFlow(UiState(serverUrl = appViewModel.uiState.value.serverUrl))
     val ui: StateFlow<UiState> = _ui.asStateFlow()
 
     fun load(activityId: String) {
