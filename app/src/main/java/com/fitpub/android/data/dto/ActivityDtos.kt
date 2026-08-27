@@ -32,6 +32,8 @@ data class ActivityDto(
     val username: String? = null,
     val displayName: String? = null,
     val avatarUrl: String? = null,
+    val user: UserDto? = null,
+    val author: UserDto? = null,
     val actorUri: String? = null,
     val isLocal: Boolean = false,
     val simplifiedTrack: GeoJsonGeometry? = null,
@@ -46,7 +48,11 @@ data class ActivityDto(
     val reactionCounts: Map<String, Long>? = null,
     val currentUserReaction: String? = null,
     val privacyZones: List<PrivacyZonePreviewDto>? = null,
-)
+) {
+    val resolvedUsername: String? get() = username ?: author?.username ?: user?.username
+    val resolvedDisplayName: String? get() = displayName ?: author?.displayName ?: user?.displayName
+    val resolvedAvatarUrl: String? get() = avatarUrl ?: author?.avatarUrl ?: user?.avatarUrl
+}
 
 @Serializable
 data class ActivityMetricsDto(

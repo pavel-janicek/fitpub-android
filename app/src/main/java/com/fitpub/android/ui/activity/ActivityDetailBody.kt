@@ -35,9 +35,9 @@ internal fun DetailBody(
                 Spacer(Modifier.height(6.dp))
                 AuthorCard(
                     ui = ui,
-                    username = activity.username,
-                    displayName = activity.displayName,
-                    avatarUrl = activity.avatarUrl,
+                    username = activity.resolvedUsername,
+                    displayName = activity.resolvedDisplayName,
+                    avatarUrl = activity.resolvedAvatarUrl,
                     onOpenProfile = onOpenProfile,
                     onToggleFollow = viewModel::toggleFollow,
                 )

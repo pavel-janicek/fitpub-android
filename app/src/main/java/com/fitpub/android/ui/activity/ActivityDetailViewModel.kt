@@ -88,7 +88,7 @@ class ActivityDetailViewModel(
     }
 
     private suspend fun loadFollowStatus() {
-        val owner = _ui.value.activity?.username
+        val owner = _ui.value.activity?.resolvedUsername
         val own = owner.isNullOrBlank() || owner == appViewModel.uiState.value.username
         _ui.value = _ui.value.copy(isOwnActivity = own, serverUrl = appViewModel.uiState.value.serverUrl)
         if (own) {
