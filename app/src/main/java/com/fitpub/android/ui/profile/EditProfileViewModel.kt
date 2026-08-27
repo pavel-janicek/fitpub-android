@@ -52,6 +52,7 @@ class EditProfileViewModel(private val users: UserRepository) : ViewModel() {
         val busy: Boolean = false,
         val error: String? = null,
         val done: Boolean = false,
+        val saved: com.fitpub.android.data.dto.UserDto? = null,
     )
 
     private val _ui = MutableStateFlow(UiState())
@@ -61,7 +62,7 @@ class EditProfileViewModel(private val users: UserRepository) : ViewModel() {
         viewModelScope.launch {
             _ui.value = UiState(busy = true)
             when (val r = users.updateMe(request)) {
-                is ApiResult.Success -> _ui.value = UiState(done = true)
+                is ApiResult.Success -> _ui.value = UiState(done = true, saved = r.data)
                 is ApiResult.Error -> _ui.value = UiState(error = r.message)
             }
         }

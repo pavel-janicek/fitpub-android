@@ -147,6 +147,18 @@ fun ProfileScreen(
         factory = ProfileViewModel.factory(container, appViewModel),
     )
     androidx.compose.runtime.LaunchedEffect(username) { vm.load(username) }
+    // Re-fetch when the screen comes back to the foreground (e.g., after editing the
+    // profile), so avatar/bio/timezone changes show up without an app restart.
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner, username) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME && vm.ui.value.user != null) {
+                vm.load(username)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     val ui by vm.ui.collectAsState()
     val sessionState by appViewModel.uiState.collectAsState()
     val unitSystem by appViewModel.unitSystem.collectAsState()

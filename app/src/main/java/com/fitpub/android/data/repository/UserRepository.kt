@@ -293,6 +293,19 @@ class UserRepository(
         }
     }
 
+    /** IANA time-zone identifiers accepted by UserUpdateRequest.timezone. */
+    suspend fun timezones(): ApiResult<List<String>> {
+        return try {
+            val response = api.timezones()
+            if (!response.isSuccessful) {
+                return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
+            }
+            ApiResult.Success(response.body() ?: emptyList())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error", throwable = e)
+        }
+    }
+
     private suspend fun copyUriToCache(context: Context, uri: Uri): File? {
         return try {
             val name = uri.lastPathSegment?.substringAfterLast('/') ?: "avatar_${System.currentTimeMillis()}"

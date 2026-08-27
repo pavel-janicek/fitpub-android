@@ -1,12 +1,18 @@
 package com.fitpub.android.ui.analytics
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -14,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.fitpub.android.data.dto.ActivitySummaryPeriodDto
 import com.fitpub.android.ui.components.EmptyState
 import com.fitpub.android.ui.components.StatRow
 import com.fitpub.android.util.Format
@@ -22,6 +29,9 @@ import com.fitpub.android.util.Format
 internal fun OverviewContent(ui: AnalyticsViewModel.UiState, unitSystem: String) {
     val dash = ui.dashboard ?: return EmptyState(title = "No analytics yet")
     LazyColumn(modifier = Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        item {
+            WeeklyDistanceChart(weeks = ui.weekly.takeLast(12))
+        }
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(14.dp)) {
@@ -65,6 +75,52 @@ private fun MiniStatCard(label: String, value: String, modifier: Modifier = Modi
         ) {
             Text(value, style = MaterialTheme.typography.titleLarge)
             Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+/** Simple dependency-free bar chart of distance per week over the last N weeks. */
+@Composable
+private fun WeeklyDistanceChart(weeks: List<ActivitySummaryPeriodDto>) {
+    if (weeks.none { (it.totalDistanceMeters ?: 0.0) > 0.0 }) return
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text("Last ${weeks.size} weeks", style = MaterialTheme.typography.titleMedium)
+            val maxDistance = weeks.maxOf { it.totalDistanceMeters ?: 0.0 }.coerceAtLeast(1.0)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .padding(top = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                weeks.forEach { week ->
+                    val fraction = ((week.totalDistanceMeters ?: 0.0) / maxDistance).toFloat()
+                    Column(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Bottom,
+                    ) {
+                        Text(
+                            Format.distanceShort(week.totalDistanceMeters),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                        )
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 4.dp)
+                                .fillMaxWidth()
+                                .fillMaxHeight(fraction.coerceIn(0.02f, 1f))
+                                .background(
+                                    MaterialTheme.colorScheme.primary,
+                                    RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp),
+                                ),
+                        )
+                    }
+                }
+            }
         }
     }
 }

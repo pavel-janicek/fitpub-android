@@ -1,5 +1,7 @@
 package com.fitpub.android.ui.profile
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -9,7 +11,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -19,6 +23,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,7 +34,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.fitpub.android.AppContainer
 import com.fitpub.android.data.dto.DefaultTimelines
@@ -63,6 +70,10 @@ fun EditProfileScreen(
     }
 
     if (ui.done) {
+        val saved = ui.saved
+        if (saved != null) {
+            appViewModel.onProfileLoaded(saved)
+        }
         onDone()
         return
     }
@@ -76,6 +87,21 @@ fun EditProfileScreen(
     }
     var timeline by rememberSaveable(current?.defaultTimeline) {
         mutableStateOf(current?.defaultTimeline ?: DefaultTimelines.FEDERATED)
+    }
+    var timezone by rememberSaveable(current?.timezone) {
+        mutableStateOf(current?.timezone.orEmpty())
+    }
+    var timezoneOptions by androidx.compose.runtime.remember {
+        androidx.compose.runtime.mutableStateOf<List<String>>(emptyList())
+    }
+    var showTimezoneDialog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var timezoneQuery by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        when (val r = container.userRepository.timezones()) {
+            is ApiResult.Success -> timezoneOptions = r.data
+            else -> Unit
+        }
     }
 
     Scaffold(
@@ -112,6 +138,67 @@ fun EditProfileScreen(
             )
             val scope = androidx.compose.runtime.rememberCoroutineScope()
             val context = androidx.compose.ui.platform.LocalContext.current
+            val avatarImage = com.fitpub.android.util.UrlBuilder.avatar(
+                appViewModel.uiState.value.serverUrl,
+                current?.avatarUrl,
+            )
+            Text("Avatar", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 14.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(top = 8.dp),
+            ) {
+                if (avatarImage != null) {
+                    coil.compose.AsyncImage(
+                        model = avatarImage,
+                        contentDescription = "Avatar",
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                    )
+                } else {
+                    androidx.compose.foundation.layout.Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            (displayName.ifBlank { "@" }).take(1).uppercase(),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                val avatarPicker = androidx.activity.compose.rememberLauncherForActivityResult(
+                    androidx.activity.result.contract.ActivityResultContracts.GetContent(),
+                ) { uri ->
+                    if (uri != null) {
+                        scope.launch {
+                            when (val r = container.userRepository.uploadAvatar(context, uri)) {
+                                is ApiResult.Success -> current = r.data
+                                else -> Unit
+                            }
+                        }
+                    }
+                }
+                Button(onClick = { avatarPicker.launch("image/*") }) {
+                    Text(if (avatarImage == null) "Upload avatar" else "Replace")
+                }
+                if (avatarImage != null) {
+                    OutlinedButton(onClick = {
+                        scope.launch {
+                            when (val r = container.userRepository.deleteAvatar()) {
+                                is ApiResult.Success -> current = current?.copy(avatarUrl = null, hasUploadedAvatar = false)
+                                else -> Unit
+                            }
+                        }
+                    }) { Text("Remove") }
+                }
+            }
             val headerUrl = com.fitpub.android.util.UrlBuilder.avatar(
                 appViewModel.uiState.value.serverUrl,
                 current?.profileHeaderUrl,
@@ -175,6 +262,54 @@ fun EditProfileScreen(
                     FilterChip(selected = timeline == t, onClick = { timeline = t }, label = { Text(t.lowercase()) })
                 }
             }
+            Text("Time zone", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 14.dp))
+            OutlinedButton(
+                onClick = { showTimezoneDialog = true },
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+            ) {
+                Text(timezone.ifBlank { "Select time zone" })
+            }
+            if (showTimezoneDialog) {
+                androidx.compose.material3.AlertDialog(
+                    onDismissRequest = { showTimezoneDialog = false },
+                    confirmButton = {},
+                    dismissButton = {
+                        androidx.compose.material3.TextButton(onClick = { showTimezoneDialog = false }) { Text("Close") }
+                    },
+                    title = { Text("Select time zone") },
+                    text = {
+                        Column {
+                            OutlinedTextField(
+                                value = timezoneQuery,
+                                onValueChange = { timezoneQuery = it },
+                                placeholder = { Text("Search…") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            androidx.compose.foundation.lazy.LazyColumn(
+                                modifier = Modifier.fillMaxWidth().height(340.dp).padding(top = 8.dp),
+                            ) {
+                                val filtered = if (timezoneQuery.isBlank()) timezoneOptions
+                                    else timezoneOptions.filter { it.contains(timezoneQuery, ignoreCase = true) }
+                                items(filtered.size) { i ->
+                                    val zone = filtered[i]
+                                    Text(
+                                        zone,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                timezone = zone
+                                                showTimezoneDialog = false
+                                            }
+                                            .padding(vertical = 10.dp),
+                                    )
+                                }
+                            }
+                        }
+                    },
+                )
+            }
             val error = ui.error
             if (error != null) {
                 Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 10.dp))
@@ -187,6 +322,7 @@ fun EditProfileScreen(
                             bio = bio.ifBlank { null },
                             profileVisibility = visibility,
                             defaultTimeline = timeline,
+                            timezone = timezone.ifBlank { null },
                         ),
                     )
                 },

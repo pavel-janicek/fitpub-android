@@ -43,7 +43,10 @@ fun AnalyticsTabContent(
     var tab by remember { mutableIntStateOf(0) }
 
     Column(modifier = modifier.fillMaxSize()) {
-        TabRow(selectedTabIndex = tab) {
+        androidx.compose.material3.ScrollableTabRow(
+            selectedTabIndex = tab,
+            edgePadding = 12.dp,
+        ) {
             TABS.forEachIndexed { index, title ->
                 Tab(selected = tab == index, onClick = { tab = index }, text = { Text(title) })
             }
