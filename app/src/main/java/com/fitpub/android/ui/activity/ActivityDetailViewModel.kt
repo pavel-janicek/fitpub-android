@@ -34,6 +34,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.fitpub.android.AppContainer
+import com.fitpub.android.data.dto.ActivityUpdateRequest
 import com.fitpub.android.data.dto.CommentDto
 import com.fitpub.android.data.dto.LikeDto
 import com.fitpub.android.data.dto.ReactionPalette
@@ -170,6 +171,25 @@ class ActivityDetailViewModel(
         viewModelScope.launch {
             activities.deleteComment(activityId, commentId)
             loadComments(activityId)
+        }
+    }
+
+    fun updateActivity(activityId: String, request: ActivityUpdateRequest) {
+        viewModelScope.launch {
+            when (val r = activities.update(activityId, request)) {
+                is ApiResult.Success -> load(activityId)
+                is ApiResult.Error -> _ui.value = _ui.value.copy(error = r.message)
+            }
+        }
+    }
+
+    /** Deletes the activity; invokes [onDeleted] (e.g. navigate back) only on success. */
+    fun deleteActivity(activityId: String, onDeleted: () -> Unit) {
+        viewModelScope.launch {
+            when (val r = activities.delete(activityId)) {
+                is ApiResult.Success -> onDeleted()
+                is ApiResult.Error -> _ui.value = _ui.value.copy(error = r.message)
+            }
         }
     }
 

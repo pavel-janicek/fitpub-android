@@ -1,6 +1,7 @@
 package com.fitpub.android.ui.notifications
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,9 +13,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DoneAll
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -74,6 +77,8 @@ fun NotificationsTabContent(
                             else n.actorUsername?.let(onOpenProfile)
                         },
                         onDelete = { n.id?.let(viewModel::delete) },
+                        onAccept = { n.actorUsername?.let(viewModel::acceptFollowRequest) },
+                        onReject = { n.actorUsername?.let(viewModel::rejectFollowRequest) },
                     )
                 }
             }
@@ -119,7 +124,13 @@ fun NotificationsScreen(
 }
 
 @Composable
-private fun NotificationRow(notification: NotificationDto, onClick: () -> Unit, onDelete: () -> Unit) {
+private fun NotificationRow(
+    notification: NotificationDto,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
+    onAccept: () -> Unit = {},
+    onReject: () -> Unit = {},
+) {
     val actor = notification.actorDisplayName ?: notification.actorUsername ?: "Someone"
     val text = when (notification.type) {
         "ACTIVITY_LIKED" -> "$actor reacted ${notification.reactionEmoji ?: "❤️"} to your activity"
@@ -151,6 +162,13 @@ private fun NotificationRow(notification: NotificationDto, onClick: () -> Unit, 
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                     )
+                }
+            }
+            if (notification.type == "FOLLOW_REQUEST") {
+                Spacer(Modifier.padding(top = 6.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = onAccept) { Text("Accept") }
+                    OutlinedButton(onClick = onReject) { Text("Reject") }
                 }
             }
         }

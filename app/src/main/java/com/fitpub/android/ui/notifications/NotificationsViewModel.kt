@@ -45,6 +45,7 @@ import kotlinx.coroutines.launch
 
 class NotificationsViewModel(
     private val repository: NotificationRepository,
+    private val users: com.fitpub.android.data.repository.UserRepository,
 ) : ViewModel() {
 
     data class UiState(
@@ -101,6 +102,20 @@ class NotificationsViewModel(
         viewModelScope.launch { repository.delete(id); refreshSoft() }
     }
 
+    fun acceptFollowRequest(username: String) {
+        viewModelScope.launch {
+            users.acceptFollowRequest(username)
+            refreshSoft()
+        }
+    }
+
+    fun rejectFollowRequest(username: String) {
+        viewModelScope.launch {
+            users.rejectFollowRequest(username)
+            refreshSoft()
+        }
+    }
+
     private fun refreshSoft() {
         viewModelScope.launch {
             val result = repository.list(page = 0)
@@ -113,7 +128,7 @@ class NotificationsViewModel(
 
     companion object {
         fun factory(container: AppContainer): ViewModelProvider.Factory = viewModelFactory {
-            initializer { NotificationsViewModel(container.notificationRepository) }
+            initializer { NotificationsViewModel(container.notificationRepository, container.userRepository) }
         }
     }
 }

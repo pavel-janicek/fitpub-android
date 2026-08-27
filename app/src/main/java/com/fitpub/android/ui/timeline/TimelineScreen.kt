@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
@@ -54,8 +55,10 @@ class TimelineViewModel(
 
     data class UiState(
         val loading: Boolean = false,
+        val loadingMore: Boolean = false,
         val error: String? = null,
         val activities: List<TimelineActivityDto> = emptyList(),
+        val hasMore: Boolean = true,
         val serverUrl: String = "",
         val unitSystem: String = "METRIC",
     )
@@ -108,17 +111,41 @@ class TimelineViewModel(
         val current = _tab.value
         val query = _search.value.ifBlank { null }
         viewModelScope.launch {
-            _ui.value = _ui.value.copy(loading = true, error = null)
+            _ui.value = _ui.value.copy(loading = true, loadingMore = false, error = null)
             when (val result = repository.load(current, page = 0, search = query)) {
-                is ApiResult.Success -> _ui.value =
-                    _ui.value.copy(loading = false, activities = result.data)
-                is ApiResult.Error -> _ui.value =
-                    _ui.value.copy(loading = false, error = result.message)
+                is ApiResult.Success -> _ui.value = _ui.value.copy(
+                    loading = false,
+                    activities = result.data,
+                    hasMore = result.data.size >= PAGE_SIZE,
+                )
+                is ApiResult.Error -> _ui.value = _ui.value.copy(loading = false, error = result.message)
+            }
+        }
+    }
+
+    fun loadMore() {
+        val st = _ui.value
+        if (st.loading || st.loadingMore || !st.hasMore) return
+        val current = _tab.value
+        val query = _search.value.ifBlank { null }
+        val nextPage = st.activities.size / PAGE_SIZE
+        viewModelScope.launch {
+            _ui.value = _ui.value.copy(loadingMore = true)
+            when (val result = repository.load(current, page = nextPage, search = query)) {
+                is ApiResult.Success -> _ui.value = _ui.value.copy(
+                    loadingMore = false,
+                    activities = (st.activities + result.data).distinctBy { it.id },
+                    hasMore = result.data.size >= PAGE_SIZE,
+                )
+                is ApiResult.Error -> _ui.value = _ui.value.copy(loadingMore = false, error = result.message)
             }
         }
     }
 
     companion object {
+        /** Must match the server's fixed page size (see TimelineRepository.load). */
+        private const val PAGE_SIZE = 20
+
         fun factory(container: AppContainer): ViewModelProvider.Factory = viewModelFactory {
             initializer { TimelineViewModel(container.timelineRepository, container.sessionStore) }
         }
@@ -217,6 +244,19 @@ fun TimelineScreen(
                                 onClick = { onOpenActivity(activity.id) },
                                 onAuthorClick = { activity.username?.let(onOpenProfile) },
                             )
+                        }
+                        if (ui.hasMore) {
+                            item(key = "load-more") {
+                                Button(
+                                    onClick = { vm.loadMore() },
+                                    enabled = !ui.loadingMore,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                                ) {
+                                    Text(if (ui.loadingMore) "Loading…" else "Load more")
+                                }
+                            }
                         }
                     }
                 }

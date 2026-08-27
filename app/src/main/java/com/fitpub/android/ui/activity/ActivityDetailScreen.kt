@@ -12,6 +12,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -21,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.viewinterop.AndroidView
 import com.fitpub.android.AppContainer
+import com.fitpub.android.data.dto.ActivityUpdateRequest
 import com.fitpub.android.data.dto.ReactionPalette
 import com.fitpub.android.ui.AppViewModel
 import com.fitpub.android.ui.components.ErrorState
@@ -61,6 +66,11 @@ fun ActivityDetailScreen(
     val unitSystem by appViewModel.unitSystem.collectAsState()
     LaunchedEffect(activityId) { vm.load(activityId) }
 
+    var showEditDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var editTitle by remember { mutableStateOf("") }
+    var editDescription by remember { mutableStateOf("") }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -68,6 +78,20 @@ fun ActivityDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    if (ui.isOwnActivity) {
+                        IconButton(onClick = {
+                            editTitle = ui.activity?.title.orEmpty()
+                            editDescription = ui.activity?.description.orEmpty()
+                            showEditDialog = true
+                        }) {
+                            Icon(Icons.Filled.Edit, contentDescription = "Edit activity")
+                        }
+                        IconButton(onClick = { showDeleteConfirm = true }) {
+                            Icon(Icons.Filled.Delete, contentDescription = "Delete activity")
+                        }
                     }
                 },
             )
@@ -84,5 +108,60 @@ fun ActivityDetailScreen(
                 onOpenProfile = onOpenProfile,
             )
         }
+    }
+
+    if (showEditDialog) {
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            title = { Text("Edit activity") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = editTitle,
+                        onValueChange = { editTitle = it },
+                        label = { Text("Title") },
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = editDescription,
+                        onValueChange = { editDescription = it },
+                        label = { Text("Description") },
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showEditDialog = false
+                        vm.updateActivity(
+                            activityId,
+                            ActivityUpdateRequest(title = editTitle, description = editDescription),
+                        )
+                    },
+                ) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = false }) { Text("Cancel") }
+            },
+        )
+    }
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Delete activity") },
+            text = { Text("This activity will be permanently deleted. This cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirm = false
+                        vm.deleteActivity(activityId) { onBack() }
+                    },
+                ) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") }
+            },
+        )
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -83,6 +84,11 @@ fun CommentComposer(activityId: String, viewModel: ActivityDetailViewModel) {
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        if (c.canDelete && c.id != null) {
+                            IconButton(onClick = { viewModel.deleteComment(activityId, c.id) }) {
+                                Icon(Icons.Filled.Delete, contentDescription = "Delete comment")
+                            }
+                        }
                     }
                     Text(c.content.orEmpty(), modifier = Modifier.padding(top = 6.dp))
                 }
