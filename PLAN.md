@@ -1,7 +1,7 @@
 # FitPub Android — Project Roadmap
 
 Assessment date: 2026-08-25 · Last updated: after completion of Iteration 3
-Current app version: **`0.4.0`** (`versionCode 4`)
+Current app version: **`0.4.1`** (`versionCode 5`)
 
 ## Current state
 
@@ -67,7 +67,8 @@ Progress ledger (kept up to date per iteration):
 |---|---|---|
 | 0.1.0 | Initial assessment snapshot | ✅ superseded |
 | 0.2.0 | Iterations 1+2 — compiles; repo/build hygiene, README | ✅ done |
-| **0.4.0 (current)** | Iteration 4 — feature completion (heatmap, summaries + training load, batch import, profile header, delete account, route cleanup) | ✅ done |
+| 0.4.0 | Iteration 4 — feature completion (heatmap, summaries + training load, batch import, profile header, delete account, route cleanup) | ✅ done |
+| **0.4.1 (current)** | Patch — activity descriptions now shown on timeline cards (were dropped by ActivityCard) | ✅ done |
 | 0.5.0 | Iteration 5 — tests & CI | ⬜ |
 | 0.6.0 | Iteration 6 — release hardening (token encryption, R8, signing) | ⬜ |
 | **1.0** | All of the above → first stable release | ⬜ |

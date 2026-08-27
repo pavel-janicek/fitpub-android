@@ -82,6 +82,15 @@ fun ActivityCard(activity: TimelineActivityDto, serverUrl: String, unitSystem: S
                     )
                 }
             }
+            if (!activity.description.isNullOrBlank()) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = activity.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
             Spacer(Modifier.height(10.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 MetricItem("Distance", Format.distance(activity.totalDistance, unitSystem))
