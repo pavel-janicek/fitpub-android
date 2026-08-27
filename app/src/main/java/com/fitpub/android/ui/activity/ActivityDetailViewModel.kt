@@ -61,6 +61,10 @@ class ActivityDetailViewModel(
         /** Follow relationship with the activity's owner; null for own activities or while loading. */
         val followStatus: com.fitpub.android.data.dto.FollowStatusDto? = null,
         val followBusy: Boolean = false,
+        /** True when the activity belongs to the signed-in user (follow UI hidden). */
+        val isOwnActivity: Boolean = false,
+        /** Base URL of the current instance, used to resolve the author's avatar. */
+        val serverUrl: String = "",
     )
 
     private val _ui = MutableStateFlow(UiState())
@@ -84,22 +88,29 @@ class ActivityDetailViewModel(
 
     private suspend fun loadFollowStatus() {
         val owner = _ui.value.activity?.username
-        if (owner.isNullOrBlank() || owner == appViewModel.uiState.value.username) {
+        val own = owner.isNullOrBlank() || owner == appViewModel.uiState.value.username
+        _ui.value = _ui.value.copy(isOwnActivity = own, serverUrl = appViewModel.uiState.value.serverUrl)
+        if (own) {
             _ui.value = _ui.value.copy(followStatus = null)
             return
         }
         when (val f = users.followStatus(owner)) {
             is ApiResult.Success -> _ui.value = _ui.value.copy(followStatus = f.data)
-            else -> Unit
+            else -> Unit // stay null: the button still shows and defaults to Follow
         }
     }
 
     fun toggleFollow() {
         val owner = _ui.value.activity?.username ?: return
-        val status = _ui.value.followStatus ?: return
+        val status = _ui.value.followStatus
         viewModelScope.launch {
             _ui.value = _ui.value.copy(followBusy = true)
-            val result = if (status.isFollowing || status.canUnfollow) users.unfollow(owner) else users.follow(owner)
+            // No cached status (fresh visitor): default to follow; pending request cancels via unfollow.
+            val result = if (status != null && (status.isFollowing || status.canUnfollow || status.isFollowRequestPending)) {
+                users.unfollow(owner)
+            } else {
+                users.follow(owner)
+            }
             when (result) {
                 is ApiResult.Success -> {
                     // Re-fetch authoritative state instead of guessing flags client-side.

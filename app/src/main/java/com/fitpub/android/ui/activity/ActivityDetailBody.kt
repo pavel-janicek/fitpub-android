@@ -31,35 +31,16 @@ internal fun DetailBody(
     LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        com.fitpub.android.data.dto.ActivityTypes.icon(activity.activityType),
-                        style = MaterialTheme.typography.headlineMedium,
-                    )
-                    Spacer(Modifier.padding(start = 10.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(activity.title ?: Format.uppercaseFirst(activity.activityType), style = MaterialTheme.typography.titleLarge)
-                        Text(
-                            "${activity.displayName ?: activity.username ?: ""} · ${Format.dateTime(activity.startedAt)}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.then(
-                                if (!activity.username.isNullOrBlank()) {
-                                    Modifier.clickable { onOpenProfile(activity.username!!) }
-                                } else Modifier,
-                            ),
-                        )
-                    }
-                    // Follow/unfollow right from the activity view (hidden on own activities).
-                    if (ui.followStatus != null) {
-                        androidx.compose.material3.OutlinedButton(
-                            onClick = { viewModel.toggleFollow() },
-                            enabled = !ui.followBusy,
-                        ) {
-                            Text(if (ui.followStatus?.isFollowing == true || ui.followStatus?.canUnfollow == true) "Unfollow" else "Follow")
-                        }
-                    }
-                }
+                Text(activity.title ?: Format.uppercaseFirst(activity.activityType), style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(6.dp))
+                AuthorCard(
+                    ui = ui,
+                    username = activity.username,
+                    displayName = activity.displayName,
+                    avatarUrl = activity.avatarUrl,
+                    onOpenProfile = onOpenProfile,
+                    onToggleFollow = viewModel::toggleFollow,
+                )
                 if (!activity.description.isNullOrBlank()) {
                     Spacer(Modifier.height(8.dp))
                     Text(activity.description)
@@ -89,5 +70,68 @@ internal fun DetailBody(
         item { TrackMap(segments = viewModel.trackSegments(), hasTrack = ui.track != null) }
         item { ReactionRow(activityId = activityId, viewModel = viewModel, ui = ui) }
         item { CommentComposer(activityId = activityId, viewModel = viewModel) }
+    }
+}
+
+/** Author identity card: avatar, name, handle + date, and a follow/unfollow button. */
+@Composable
+private fun AuthorCard(
+    ui: ActivityDetailViewModel.UiState,
+    username: String?,
+    displayName: String?,
+    avatarUrl: String?,
+    onOpenProfile: (String) -> Unit,
+    onToggleFollow: () -> Unit,
+) {
+    val serverUrl = ui.serverUrl
+    androidx.compose.material3.Card(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth().padding(10.dp),
+        ) {
+            com.fitpub.android.ui.components.UserAvatar(
+                avatarUrl = avatarUrl,
+                displayName = displayName ?: username,
+                serverUrl = serverUrl,
+            )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 10.dp)
+                    .then(if (!username.isNullOrBlank()) Modifier.clickable { onOpenProfile(username) } else Modifier),
+            ) {
+                Text(
+                    displayName ?: username ?: "Athlete",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Text(
+                    buildString {
+                        if (!username.isNullOrBlank()) append("@$username")
+                        if (!ui.activity?.startedAt.isNullOrBlank()) {
+                            if (isNotEmpty()) append(" · ")
+                            append(Format.dateTime(ui.activity?.startedAt))
+                        }
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            // Always visible for other athletes — even before a follow status arrives.
+            if (!username.isNullOrBlank() && !ui.isOwnActivity) {
+                val status = ui.followStatus
+                val label = when {
+                    status == null -> "Follow"
+                    status.isFollowing || status.canUnfollow -> "Unfollow"
+                    status.isFollowRequestPending -> "Request sent"
+                    else -> "Follow"
+                }
+                androidx.compose.material3.OutlinedButton(
+                    onClick = onToggleFollow,
+                    enabled = !ui.followBusy,
+                ) {
+                    Text(label)
+                }
+            }
+        }
     }
 }
