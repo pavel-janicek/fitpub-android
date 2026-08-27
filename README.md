@@ -68,3 +68,12 @@ This project is developed with the help of an AI coding agent:
 model. Code reviews, testing on device/emulator, and product decisions are done by
 a human; implementation, refactoring, and documentation drafts are produced by the
 agent in iterative sessions (see `PLAN.md` for the iteration plan).
+
+
+## 📥 Installation (APK)
+**1. Download the APK** from the **Assets** section below.  
+**2. Enable “Install unknown apps”** for your browser or file manager (Settings → Security).  
+**3. Open the downloaded APK** from your Downloads folder.  
+**4. Confirm installation** and launch the app.
+
+**⚠️ Install at your own risk.** No guarantees, no warranties, no crying if your phone decides to rebel.
