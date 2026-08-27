@@ -13,12 +13,12 @@ import com.fitpub.android.data.network.ErrorMessages
 import com.fitpub.android.data.network.FitPubApi
 import com.fitpub.android.data.session.SessionStore
 
-class AuthRepository(
+open class AuthRepository(
     private val api: FitPubApi,
     private val sessionStore: SessionStore,
 ) {
 
-    suspend fun login(usernameOrEmail: String, password: String): ApiResult<AuthResponse> {
+    open suspend fun login(usernameOrEmail: String, password: String): ApiResult<AuthResponse> {
         return try {
             val response = api.login(LoginRequest(usernameOrEmail = usernameOrEmail, password = password))
             if (!response.isSuccessful) {

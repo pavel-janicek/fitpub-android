@@ -1,7 +1,7 @@
 # FitPub Android — Project Roadmap
 
 Assessment date: 2026-08-25 · Last updated: after completion of Iteration 3
-Current app version: **`0.4.7`** (`versionCode` 11)
+Current app version: **`0.5.0`** (`versionCode` 14)
 
 ## Current state
 
@@ -76,8 +76,8 @@ Progress ledger (kept up to date per iteration):
 | **0.4.6** | Patch — request-to-follow for private accounts: 403 "only visible to followers" profile errors detected → dedicated LockedProfileBody with 🔒 + "Request to follow" button; pending-request state shown as "Request sent" and tappable again to cancel; follow-status still fetched for locked profiles so button reflects server state | ✅ done |
 | **0.4.7** | Patch — author card on activity detail: avatar + display name + @username in a tappable card at the top of the detail screen, with an always-visible Follow/Unfollow button (supporting request-to-follow for private accounts and no-cached-status first-time follow); fixes the 0.4.5 follow affordance that never rendered | ✅ done |
 | **0.4.8** | Patch — walkthrough gap fixes: timeline pagination (Load-more appends next 20), follow-request Accept/Reject buttons on notifications (FOLLOW_REQUEST rows), edit + delete own activity from detail (title/description dialog + delete confirm), comment delete affordance on comments the user owns (`canDelete`) | ✅ done |
-| **0.4.9 (current)** | Patch — activity detail clearly shows the author: avatar + display name + @handle + date in an author card at the top, the **entire card is now clickable** (avatar included) to open the author's profile, and a Follow/Unfollow button sits inline (request-to-follow + "Request sent" states included). Verified against live instance — API returns `username`/`displayName` for federated + local authors. Rebuild to pick up any stale pre-0.4.7 APK. | ✅ done |
-| 0.5.0 | Iteration 5 — tests & CI | ⬜ |
+| **0.4.9** | Patch — activity detail clearly shows the author: avatar + display name + @handle + date in an author card at the top, the **entire card is now clickable** (avatar included) to open the author's profile, and a Follow/Unfollow button sits inline (request-to-follow + "Request sent" states included). Verified against live instance — API returns `username`/`displayName` for federated + local authors. Rebuild to pick up any stale pre-0.4.7 APK. | ✅ done |
+| **0.5.0 (current)** | Iteration 5 — JVM utility/repository/ViewModel tests, Compose auth/timeline smoke tests, and GitHub Actions CI | ✅ done |
 | 0.6.0 | Iteration 6 — release hardening (token encryption, R8, signing) | ⬜ |
 | **1.0** | All of the above → first stable release | ⬜ |
 | **2.0** | + Iteration 7 — record workouts on-device and share | ⬜ |
@@ -121,7 +121,7 @@ Progress ledger (kept up to date per iteration):
 > remove or implement the unused Routes SEARCH / CREATE_MANUAL /
 > ANALYTICS_DETAIL. Keep patterns consistent with existing screens."
 
-### Iteration 5 — Tests & CI
+### Iteration 5 — Tests & CI ✅
 > "Add unit tests: SessionStore.normalizeServerUrl, TrackParser, Format,
 > UrlBuilder, repository mapping/error handling (MockWebServer), ViewModel
 > logic; plus Compose UI smoke tests for auth and timeline. Add a GitHub

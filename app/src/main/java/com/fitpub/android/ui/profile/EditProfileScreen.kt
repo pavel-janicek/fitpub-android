@@ -58,6 +58,7 @@ fun EditProfileScreen(
         factory = EditProfileViewModel.factory(container),
     )
     val ui by vm.ui.collectAsState()
+    val appUi by appViewModel.uiState.collectAsState()
 
     var current by androidx.compose.runtime.remember {
         mutableStateOf<com.fitpub.android.data.dto.UserDto?>(null)
@@ -139,7 +140,7 @@ fun EditProfileScreen(
             val scope = androidx.compose.runtime.rememberCoroutineScope()
             val context = androidx.compose.ui.platform.LocalContext.current
             val avatarImage = com.fitpub.android.util.UrlBuilder.avatar(
-                appViewModel.uiState.value.serverUrl,
+                appUi.serverUrl,
                 current?.avatarUrl,
             )
             Text("Avatar", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 14.dp))
@@ -200,7 +201,7 @@ fun EditProfileScreen(
                 }
             }
             val headerUrl = com.fitpub.android.util.UrlBuilder.avatar(
-                appViewModel.uiState.value.serverUrl,
+                appUi.serverUrl,
                 current?.profileHeaderUrl,
             )
             Text("Profile header", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 14.dp))

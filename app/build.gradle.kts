@@ -13,8 +13,8 @@ android {
         applicationId = "com.fitpub.android"
         minSdk = 26
         targetSdk = 35
-        versionCode = 13
-        versionName = "0.4.9"
+        versionCode = 14
+        versionName = "0.5.0"
     }
 
     buildTypes {
@@ -36,6 +36,9 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
     }
 }
 
@@ -74,4 +77,18 @@ dependencies {
 
     // Debug
     debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // JVM tests
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+    testImplementation("org.mockito:mockito-core:5.13.0")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+
+    // Instrumented Compose smoke tests
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.09.03"))
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }
