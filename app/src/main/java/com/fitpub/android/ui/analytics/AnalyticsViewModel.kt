@@ -30,6 +30,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.fitpub.android.AppContainer
 import com.fitpub.android.data.dto.ActivitySummaryPeriodDto
 import com.fitpub.android.data.dto.DashboardDto
+import com.fitpub.android.data.dto.TrainingLoadDto
 import com.fitpub.android.data.network.ApiResult
 import com.fitpub.android.data.repository.AnalyticsRepository
 import com.fitpub.android.ui.components.EmptyState
@@ -51,6 +52,9 @@ class AnalyticsViewModel(
         val error: String? = null,
         val dashboard: DashboardDto? = null,
         val weekly: List<ActivitySummaryPeriodDto> = emptyList(),
+        val monthly: List<ActivitySummaryPeriodDto> = emptyList(),
+        val yearly: List<ActivitySummaryPeriodDto> = emptyList(),
+        val trainingLoad: List<TrainingLoadDto> = emptyList(),
     )
 
     private val _ui = MutableStateFlow(UiState())
@@ -65,6 +69,9 @@ class AnalyticsViewModel(
             _ui.value = _ui.value.copy(loading = true, error = null)
             val dashboardCall = async { repository.dashboard() }
             val weeklyCall = async { repository.weeklySummaries(weeks = 12) }
+            val monthlyCall = async { repository.monthlySummaries(months = 12) }
+            val yearlyCall = async { repository.yearlySummaries(years = 5) }
+            val loadCall = async { repository.trainingLoad(days = 90) }
             var error: String? = null
             when (val d = dashboardCall.await()) {
                 is ApiResult.Success -> _ui.value = _ui.value.copy(dashboard = d.data)
@@ -73,6 +80,18 @@ class AnalyticsViewModel(
             when (val w = weeklyCall.await()) {
                 is ApiResult.Success -> _ui.value = _ui.value.copy(weekly = w.data)
                 is ApiResult.Error -> if (error == null) error = w.message
+            }
+            when (val m = monthlyCall.await()) {
+                is ApiResult.Success -> _ui.value = _ui.value.copy(monthly = m.data)
+                is ApiResult.Error -> if (error == null) error = m.message
+            }
+            when (val y = yearlyCall.await()) {
+                is ApiResult.Success -> _ui.value = _ui.value.copy(yearly = y.data)
+                is ApiResult.Error -> if (error == null) error = y.message
+            }
+            when (val t = loadCall.await()) {
+                is ApiResult.Success -> _ui.value = _ui.value.copy(trainingLoad = t.data)
+                is ApiResult.Error -> if (error == null) error = t.message
             }
             _ui.value = _ui.value.copy(loading = false, error = error)
         }

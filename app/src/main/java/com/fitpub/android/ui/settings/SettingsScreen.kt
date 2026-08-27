@@ -43,6 +43,7 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onOpenPrivacyZones: () -> Unit,
     onChangeInstance: () -> Unit,
+    onOpenBatchImport: () -> Unit,
 ) {
     val unitSystem by appViewModel.unitSystem.collectAsState()
     val sessionState by appViewModel.uiState.collectAsState()
@@ -116,6 +117,17 @@ fun SettingsScreen(
                     ) { Text("Manage privacy zones") }
                 }
             }
+            if (sessionState.loggedIn) {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Text("Data", style = MaterialTheme.typography.titleSmall)
+                        OutlinedButton(
+                            onClick = onOpenBatchImport,
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        ) { Text("Batch import activities") }
+                    }
+                }
+            }
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text("Account", style = MaterialTheme.typography.titleSmall)
@@ -143,6 +155,46 @@ fun SettingsScreen(
                             },
                             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                         ) { Text("Sign in or create account") }
+                    }
+                    if (sessionState.loggedIn) {
+                        var confirmDelete by rememberSaveable { mutableStateOf(false) }
+                        Button(
+                            onClick = { confirmDelete = true },
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError,
+                            ),
+                            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                        ) { Text("Delete account") }
+                        if (confirmDelete) {
+                            androidx.compose.material3.AlertDialog(
+                                onDismissRequest = { confirmDelete = false },
+                                title = { Text("Delete account?") },
+                                text = {
+                                    Text(
+                                        "This permanently deletes your account and all your " +
+                                            "activities on this instance. This cannot be undone.",
+                                    )
+                                },
+                                confirmButton = {
+                                    androidx.compose.material3.TextButton(
+                                        onClick = {
+                                            confirmDelete = false
+                                            scope.launch {
+                                                // Session cleared server-side and locally;
+                                                // the app returns to the auth flow automatically.
+                                                container.authRepository.deleteAccount()
+                                            }
+                                        },
+                                    ) { Text("Delete forever") }
+                                },
+                                dismissButton = {
+                                    androidx.compose.material3.TextButton(onClick = { confirmDelete = false }) {
+                                        Text("Cancel")
+                                    }
+                                },
+                            )
+                        }
                     }
                 }
             }

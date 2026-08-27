@@ -30,7 +30,7 @@ import com.fitpub.android.ui.components.LoadingIndicator
 import com.fitpub.android.ui.components.StatRow
 import com.fitpub.android.util.Format
 
-private val TABS = listOf("Overview", "Weekly", "Monthly")
+private val TABS = listOf("Overview", "Weekly", "Monthly", "Yearly", "Load")
 
 @Composable
 fun AnalyticsTabContent(
@@ -54,7 +54,9 @@ fun AnalyticsTabContent(
             else -> when (tab) {
                 0 -> OverviewContent(ui, unitSystem)
                 1 -> SummariesList(ui.weekly.reversed(), "week")
-                else -> SummariesList(ui.weekly.reversed(), "month")
+                2 -> SummariesList(ui.monthly.reversed(), "month")
+                3 -> SummariesList(ui.yearly.reversed(), "year")
+                else -> TrainingLoadContent(ui.trainingLoad)
             }
         }
     }

@@ -109,6 +109,23 @@ class AuthRepository(
         }
     }
 
+    /**
+     * Permanently deletes the signed-in account on the server, then clears the local
+     * session (falling back to plain logout if the server call itself fails).
+     */
+    suspend fun deleteAccount(): ApiResult<Unit> {
+        val result = try {
+            val response = api.deleteAccount()
+            if (response.isSuccessful) ApiResult.Success(Unit)
+            else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error", throwable = e)
+        }
+        // The account is gone (or unreachable); drop local credentials either way.
+        sessionStore.logout()
+        return result
+    }
+
     suspend fun setServerUrl(url: String) = sessionStore.setServerUrl(url)
 
     /** Universal wrapper that turns a Retrofit call into an [ApiResult] (202 accepted included). */

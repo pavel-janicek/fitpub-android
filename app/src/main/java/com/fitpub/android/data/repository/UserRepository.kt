@@ -5,6 +5,7 @@ import android.net.Uri
 import com.fitpub.android.data.dto.ChangePasswordRequest
 import com.fitpub.android.data.dto.EmailChangeStatusResponse
 import com.fitpub.android.data.dto.FollowStatusDto
+import com.fitpub.android.data.dto.HeatmapResponse
 import com.fitpub.android.data.dto.UserDto
 import com.fitpub.android.data.dto.UserSearchResultDto
 import com.fitpub.android.data.dto.UserUpdateRequest
@@ -233,6 +234,58 @@ class UserRepository(
     suspend fun deleteAvatar(): ApiResult<Unit> {
         return try {
             val response = api.deleteAvatar()
+            if (response.isSuccessful) ApiResult.Success(Unit)
+            else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error", throwable = e)
+        }
+    }
+
+    /** Activity-location heatmap; pass null or blank for the signed-in user. */
+    suspend fun heatmap(username: String?): ApiResult<HeatmapResponse> {
+        return try {
+            val target = username?.trim()?.removePrefix("@")
+            val response = if (target.isNullOrBlank()) api.myHeatmap() else api.userHeatmap(target)
+            if (!response.isSuccessful) {
+                return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
+            }
+            ApiResult.Success(response.body() ?: HeatmapResponse())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error", throwable = e)
+        }
+    }
+
+    suspend fun uploadProfileHeader(context: Context, uri: Uri): ApiResult<UserDto> {
+        return try {
+            val file = copyUriToCache(context, uri) ?: return ApiResult.Error("Could not read the image")
+            val part = MultipartBody.Part.createFormData(
+                "file",
+                file.name,
+                file.asRequestBody("image/*".toMediaTypeOrNull()),
+            )
+            val response = api.uploadProfileHeader(part)
+            if (!response.isSuccessful) {
+                return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
+            }
+            ApiResult.Success(response.body() ?: error("Empty profile-header response"))
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error", throwable = e)
+        }
+    }
+
+    suspend fun deleteProfileHeader(): ApiResult<Unit> {
+        return try {
+            val response = api.deleteProfileHeader()
+            if (response.isSuccessful) ApiResult.Success(Unit)
+            else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error", throwable = e)
+        }
+    }
+
+    suspend fun deleteAccount(): ApiResult<Unit> {
+        return try {
+            val response = api.deleteAccount()
             if (response.isSuccessful) ApiResult.Success(Unit)
             else ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
         } catch (e: Exception) {

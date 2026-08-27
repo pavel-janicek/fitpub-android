@@ -241,6 +241,13 @@ private fun FitPubNavGraph(
                 onBack = { navController.popBackStack() },
                 onOpenPrivacyZones = { navController.navigate(Routes.PRIVACY_ZONES) },
                 onChangeInstance = { navController.navigate(Routes.SERVER_SETUP) },
+                onOpenBatchImport = { navController.navigate(Routes.BATCH_IMPORT) },
+            )
+        }
+        composable(Routes.BATCH_IMPORT) {
+            com.fitpub.android.ui.settings.BatchImportScreen(
+                container = container,
+                onBack = { navController.popBackStack() },
             )
         }
         composable(Routes.SERVER_SETUP) {

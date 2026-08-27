@@ -5,6 +5,7 @@ import com.fitpub.android.data.network.ApiClient
 import com.fitpub.android.data.repository.ActivityRepository
 import com.fitpub.android.data.repository.AnalyticsRepository
 import com.fitpub.android.data.repository.AuthRepository
+import com.fitpub.android.data.repository.BatchImportRepository
 import com.fitpub.android.data.repository.NotificationRepository
 import com.fitpub.android.data.repository.PrivacyZoneRepository
 import com.fitpub.android.data.repository.TimelineRepository
@@ -28,4 +29,5 @@ class AppContainer(context: Context) {
     val analyticsRepository: AnalyticsRepository by lazy { AnalyticsRepository(apiClient.api) }
     val notificationRepository: NotificationRepository by lazy { NotificationRepository(apiClient.api) }
     val privacyZoneRepository: PrivacyZoneRepository by lazy { PrivacyZoneRepository(apiClient.api) }
+    val batchImportRepository: BatchImportRepository by lazy { BatchImportRepository(apiClient.api) }
 }

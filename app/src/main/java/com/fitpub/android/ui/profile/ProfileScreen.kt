@@ -39,6 +39,7 @@ import com.fitpub.android.AppContainer
 import com.fitpub.android.util.Format
 import com.fitpub.android.data.dto.ActivitySummaryDto
 import com.fitpub.android.data.dto.FollowStatusDto
+import com.fitpub.android.data.dto.HeatmapResponse
 import com.fitpub.android.data.dto.UserDto
 import com.fitpub.android.data.network.ApiResult
 import com.fitpub.android.data.repository.ActivityRepository
@@ -66,6 +67,7 @@ class ProfileViewModel(
         val user: UserDto? = null,
         val followStatus: FollowStatusDto? = null,
         val activitiesList: List<ActivitySummaryDto> = emptyList(),
+        val heatmap: HeatmapResponse? = null,
         val busy: Boolean = false,
     )
 
@@ -99,6 +101,10 @@ class ProfileViewModel(
                     is ApiResult.Success -> _ui.value = _ui.value.copy(followStatus = f.data)
                     else -> Unit
                 }
+            }
+            when (val h = users.heatmap(target)) {
+                is ApiResult.Success -> _ui.value = _ui.value.copy(heatmap = h.data)
+                else -> Unit
             }
         }
     }
@@ -252,6 +258,10 @@ private fun ProfileBody(
                     }
                 }
             }
+        }
+        val heatmap = ui.heatmap
+        item {
+            HeatmapCard(points = heatmap?.points.orEmpty(), bounds = heatmap?.bounds)
         }
         if (ui.activitiesList.isEmpty()) {
             item { EmptyState(title = "No activities yet") }

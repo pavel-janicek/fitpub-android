@@ -3,6 +3,7 @@ package com.fitpub.android.ui.profile
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,6 +37,7 @@ import com.fitpub.android.data.dto.ProfileVisibilities
 import com.fitpub.android.data.dto.UserUpdateRequest
 import com.fitpub.android.data.network.ApiResult
 import com.fitpub.android.ui.AppViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -108,6 +110,51 @@ fun EditProfileScreen(
                 label = { Text("Bio") },
                 modifier = Modifier.fillMaxWidth().height(110.dp).padding(top = 8.dp),
             )
+            val scope = androidx.compose.runtime.rememberCoroutineScope()
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val headerUrl = com.fitpub.android.util.UrlBuilder.avatar(
+                appViewModel.uiState.value.serverUrl,
+                current?.profileHeaderUrl,
+            )
+            Text("Profile header", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 14.dp))
+            if (headerUrl != null) {
+                coil.compose.AsyncImage(
+                    model = headerUrl,
+                    contentDescription = "Profile header",
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(110.dp)
+                        .padding(top = 8.dp),
+                )
+            }
+            val imagePicker = androidx.activity.compose.rememberLauncherForActivityResult(
+                androidx.activity.result.contract.ActivityResultContracts.GetContent(),
+            ) { uri ->
+                if (uri != null) {
+                    scope.launch {
+                        when (val r = container.userRepository.uploadProfileHeader(context, uri)) {
+                            is ApiResult.Success -> current = r.data
+                            else -> Unit
+                        }
+                    }
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 6.dp)) {
+                Button(onClick = { imagePicker.launch("image/*") }) {
+                    Text(if (headerUrl == null) "Upload header" else "Replace header")
+                }
+                if (headerUrl != null) {
+                    androidx.compose.material3.OutlinedButton(onClick = {
+                        scope.launch {
+                            when (val r = container.userRepository.deleteProfileHeader()) {
+                                is ApiResult.Success -> current = current?.copy(profileHeaderUrl = null)
+                                else -> Unit
+                            }
+                        }
+                    }) { Text("Remove") }
+                }
+            }
             Text("Profile visibility", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 14.dp))
             @OptIn(ExperimentalLayoutApi::class)
             FlowRow(
