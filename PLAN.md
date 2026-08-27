@@ -1,6 +1,7 @@
-# FitPub Android — Status Assessment & Finalization Plan
+# FitPub Android — Project Roadmap
 
-Assessment date: 2026-08-25 · App version `0.1.0` (`versionCode 1`)
+Assessment date: 2026-08-25 · Last updated: after completion of Iteration 3
+Current app version: **`0.3.0`** (`versionCode 3`)
 
 ## Current state
 
@@ -42,9 +43,41 @@ Other observations:
   upload/delete, delete account, monthly & yearly summaries, training load,
   timezones. Routes `SEARCH` / `CREATE_MANUAL` / `ANALYTICS_DETAIL` defined but unused.
 
-## Finalization roadmap — one prompt per iteration
+## Versioning policy
 
-### Iteration 1 — Make it compile
+The roadmap is grouped into three release gates:
+
+| Gate | Contents | Ships as |
+|---|---|---|
+| Core finalization | Iterations 1–6 | **v1.0** |
+| On-device recording ("Record" feature) | Iteration 7 | **v2.0** |
+| Wear OS companion app | Iteration 8 | **v3.0** |
+
+Pre-1.0 policy: each completed roadmap iteration bumps the app to
+`0.<N>.0` (`versionName`) and increments `versionCode` by one, so every
+shipped APK reflects real, verified progress. Feature work done outside
+the numbered iterations (guest mode, instance switching from login/settings,
+federated search, layout/inset fixes) folds into the next pre-release bump.
+From v1.0 onward the gates above are the versions — recorded here and set
+in `app/build.gradle.kts` at each release.
+
+Progress ledger (kept up to date per iteration):
+
+| Version | Milestone | Status |
+|---|---|---|
+| 0.1.0 | Initial assessment snapshot | ✅ superseded |
+| 0.2.0 | Iterations 1+2 — compiles; repo/build hygiene, README | ✅ done |
+| **0.3.0 (current)** | Iteration 3 — runtime verification pass on emulator/device | ✅ done |
+| 0.4.0 | Iteration 4 — feature completion (heatmap, batch import, summaries…) | ⬜ |
+| 0.5.0 | Iteration 5 — tests & CI | ⬜ |
+| 0.6.0 | Iteration 6 — release hardening (token encryption, R8, signing) | ⬜ |
+| **1.0** | All of the above → first stable release | ⬜ |
+| **2.0** | + Iteration 7 — record workouts on-device and share | ⬜ |
+| **3.0** | + Iteration 8 — FitPub Wear companion app | ⬜ |
+
+## Roadmap — one prompt per iteration
+
+### Iteration 1 — Make it compile ✅
 > "FitPub Android does not compile — `./gradlew assembleDebug` reports 28 Kotlin
 > errors (see PLAN.md table). Fix every error following existing conventions:
 > add the missing imports in DiscoverTab.kt, NotificationsTab.kt,
@@ -55,7 +88,7 @@ Other observations:
 > resolve the generic mismatch in DiscoverTab.kt:80. Iterate until
 > `./gradlew assembleDebug` succeeds, then report the diff summary."
 
-### Iteration 2 — Repo & build hygiene
+### Iteration 2 — Repo & build hygiene ✅
 > "Clean up the project infrastructure: add a proper .gitignore (.gradle/,
 > build/, .kotlin/, local.properties, .idea/) and remove tracked build
 > artifacts from git; delete empty dirs ui/map and ui/screens; enable
@@ -63,7 +96,7 @@ Other observations:
 > with BuildConfig.DEBUG; add a README describing the app, how to point it at
 > a self-hosted instance, and how to build; verify assembleDebug still passes."
 
-### Iteration 3 — Runtime verification pass
+### Iteration 3 — Runtime verification pass ✅
 > "Run the app on an emulator/device and verify each critical flow end-to-end:
 > server setup → register/verify → login → timeline browse → open activity
 > detail (map renders) → like/comment → create activity via file upload and
@@ -93,6 +126,8 @@ Other observations:
 > enable R8 minification with correct keep rules for kotlinx-serialization/
 > Retrofit/osmdroid; add release signing config (via env vars); bump
 > versionName/versionCode; final lint cleanup; produce a signed release APK."
+
+> 🚩 Release gate: this iteration ships as **v2.0** (everything through Iteration 6 was v1.0).
 
 ### Iteration 7 — On-device activity recording ("Record" feature)
 Goal: start an exercise inside the app, record the track with the phone's GPS
@@ -154,6 +189,8 @@ Notes:
   ActivityTypes icons, upload endpoint/multipart plumbing from CreateViewModel.
 - New dependencies to consider (keep minimal): none strictly required — Room
   optional (could start with a simple file-backed log); avoid play-services-location.
+
+> 🚩 Release gate: this iteration ships as **v3.0**.
 
 ### Iteration 8 — Wear OS companion app ("FitPub Wear")
 Goal: a Wear OS companion module so athletes can leave the phone at home,
