@@ -71,7 +71,7 @@ agent in iterative sessions (see `PLAN.md` for the iteration plan).
 
 
 ## 📥 Installation (APK)
-**1. Download the APK** from the [Assets](/releases) section below.  
+**1. Download the APK** from the [Assets](https://github.com/pavel-janicek/fitpub-android/releases) section below.  
 **2. Enable “Install unknown apps”** for your browser or file manager (Settings → Security).  
 **3. Open the downloaded APK** from your Downloads folder.  
 **4. Confirm installation** and launch the app.
