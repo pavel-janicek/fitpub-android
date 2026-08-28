@@ -1,7 +1,7 @@
 # FitPub Android — Project Roadmap
 
 Assessment date: 2026-08-25 · Last updated: Release 1.1
-Current app version: **`1.1`** (`versionCode` 17)
+Current app version: **`1.1.1`** (`versionCode` 18)
 
 ## Current state
 
@@ -82,6 +82,7 @@ Progress ledger (kept up to date per iteration):
 | 0.6.0 | Iteration 6 — release hardening (token encryption, R8, signing) | ⬜ |
 | **1.0** | All of the above → first stable release | ✅ done |
 | **1.1** | Application renaming: rename to "FP Client", unofficial client README notice, API compatibility/version info, version bump | ✅ done |
+| **1.1.1** | Patch — package rename from `com.fitpub.android` to `com.fpclient.android` | ✅ done |
 | **2.0** | + Iteration 7 — record workouts on-device and share | ⬜ |
 | **3.0** | + Iteration 8 — FitPub Wear companion app | ⬜ |
 
