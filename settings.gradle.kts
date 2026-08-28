@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "FitPub"
+rootProject.name = "FP Client"
 include(":app")
