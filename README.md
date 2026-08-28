@@ -1,4 +1,9 @@
-# FitPub for Android
+# FP Client — Unofficial FitPub for Android
+
+> **⚠️ Unofficial client.** FP Client is a community-developed Android client for
+> the [FitPub](https://codeberg.org/fitpub/fitpub) federated fitness platform.
+> It is **not** an official FitPub product and is not endorsed by or affiliated
+> with the FitPub project maintainers.
 
 An Android client for FitPub — a federated, self-hosted
 fitness activity sharing platform (think "Strava meets the Fediverse"). Track your
@@ -6,6 +11,15 @@ rides and runs, share them with followers on any FitPub instance, comment, react
 and follow other athletes.
 
 Built with Kotlin and Jetpack Compose (Material 3).
+
+## API compatibility
+
+This client was tested against **FitPub 1.2.1** (latest release at the time of
+writing, released 2026-07-18). The FitPub server is under active development;
+if you are running a newer or older version and notice breakage, please file an
+issue. The client targets the REST API as implemented by the
+`social.fitpub:fitpub` server artifact; the full endpoint surface is defined in
+`app/src/main/java/com/fitpub/android/data/network/FitPubApi.kt`.
 
 ## Features
 

@@ -34,7 +34,7 @@ import com.fitpub.android.ui.auth.ServerSetupContent
 import com.fitpub.android.ui.auth.ServerSetupViewModel
 import com.fitpub.android.ui.auth.VerifyCodeContent
 import com.fitpub.android.ui.navigation.Routes
-import com.fitpub.android.ui.theme.FitPubTheme
+import com.fitpub.android.ui.theme.FPClientTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val container = FitPubApplication.container(this)
         setContent {
-            FitPubTheme {
+            FPClientTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val state by appViewModel.uiState.collectAsState()
                     when {
