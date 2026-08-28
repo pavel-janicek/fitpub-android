@@ -174,7 +174,7 @@ fun TimelineScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("FitPub") },
+                title = { Text("FP Client") },
                 actions = {
                     IconButton(onClick = { vm.refresh() }) {
                         Icon(Icons.Filled.Refresh, contentDescription = "Refresh")

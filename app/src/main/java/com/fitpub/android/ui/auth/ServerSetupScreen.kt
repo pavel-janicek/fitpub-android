@@ -47,7 +47,7 @@ fun ServerSetupContent(
     ) {
         Text("🏃", style = MaterialTheme.typography.displayLarge)
         Text(
-            "FitPub",
+            "FP Client",
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,

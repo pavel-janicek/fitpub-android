@@ -49,7 +49,7 @@ private val DarkColors = darkColorScheme(
 )
 
 @Composable
-fun FitPubTheme(
+fun FPClientTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {

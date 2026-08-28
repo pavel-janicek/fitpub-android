@@ -1,7 +1,7 @@
 # FitPub Android — Project Roadmap
 
-Assessment date: 2026-08-25 · Last updated: after completion of Iteration 3
-Current app version: **`0.5.1`** (`versionCode` 15)
+Assessment date: 2026-08-25 · Last updated: Release 1.1
+Current app version: **`1.1`** (`versionCode` 17)
 
 ## Current state
 
@@ -78,9 +78,10 @@ Progress ledger (kept up to date per iteration):
 | **0.4.8** | Patch — walkthrough gap fixes: timeline pagination (Load-more appends next 20), follow-request Accept/Reject buttons on notifications (FOLLOW_REQUEST rows), edit + delete own activity from detail (title/description dialog + delete confirm), comment delete affordance on comments the user owns (`canDelete`) | ✅ done |
 | **0.4.9** | Patch — activity detail clearly shows the author: avatar + display name + @handle + date in an author card at the top, the **entire card is now clickable** (avatar included) to open the author's profile, and a Follow/Unfollow button sits inline (request-to-follow + "Request sent" states included). Verified against live instance — API returns `username`/`displayName` for federated + local authors. Rebuild to pick up any stale pre-0.4.7 APK. | ✅ done |
 | **0.5.0** | Iteration 5 — JVM utility/repository/ViewModel tests, Compose auth/timeline smoke tests, and GitHub Actions CI | ✅ done |
-| **0.5.1 (current)** | Patch — activity detail resolves and displays nested or flat activity author identity | ✅ done |
+| **0.5.1** | Patch — activity detail resolves and displays nested or flat activity author identity | ✅ done |
 | 0.6.0 | Iteration 6 — release hardening (token encryption, R8, signing) | ⬜ |
-| **1.0** | All of the above → first stable release | ⬜ |
+| **1.0** | All of the above → first stable release | ✅ done |
+| **1.1** | Application renaming: rename to "FP Client", unofficial client README notice, API compatibility/version info, version bump | ✅ done |
 | **2.0** | + Iteration 7 — record workouts on-device and share | ⬜ |
 | **3.0** | + Iteration 8 — FitPub Wear companion app | ⬜ |
 
