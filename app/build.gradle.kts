@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.fitpub.android"
+    namespace = "com.fpclient.android"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.fitpub.android"
+        applicationId = "com.fpclient.android"
         minSdk = 26
         targetSdk = 35
         versionCode = 17
