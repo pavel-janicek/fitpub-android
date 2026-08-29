@@ -47,6 +47,7 @@ import com.fpclient.android.ui.components.ErrorState
 import com.fpclient.android.ui.components.LoadingIndicator
 import com.fpclient.android.ui.components.StatRow
 import com.fpclient.android.util.Format
+import com.fpclient.android.util.TextLimits
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.BoundingBox
 import org.osmdroid.views.MapView
@@ -119,13 +120,13 @@ fun ActivityDetailScreen(
                 Column {
                     OutlinedTextField(
                         value = editTitle,
-                        onValueChange = { editTitle = it },
+                        onValueChange = { editTitle = it.take(TextLimits.ACTIVITY_TITLE) },
                         label = { Text("Title") },
                         singleLine = true,
                     )
                     OutlinedTextField(
                         value = editDescription,
-                        onValueChange = { editDescription = it },
+                        onValueChange = { editDescription = it.take(TextLimits.ACTIVITY_DESCRIPTION) },
                         label = { Text("Description") },
                         modifier = Modifier.padding(top = 8.dp),
                     )

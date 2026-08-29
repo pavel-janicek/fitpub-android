@@ -1,7 +1,7 @@
 # FitPub Android — Project Roadmap
 
-Assessment date: 2026-08-25 · Last updated: Release 1.2
-Current app version: **`1.2`** (`versionCode` 19)
+Assessment date: 2026-08-25 · Last updated: Release 1.2.2
+Current app version: **`1.2.2`** (`versionCode` 21)
 
 ## Current state
 
@@ -89,6 +89,8 @@ Progress ledger (kept up to date per iteration):
 | **1.1** | Application renaming: rename to "FP Client", unofficial client README notice, API compatibility/version info, version bump | ✅ done |
 | **1.1.1** | Patch — package rename from `com.fitpub.android` to `com.fpclient.android` | ✅ done |
 | **1.2** | Target Android 16 (API 36): upgrade AGP 8.5.2→8.8.0, Kotlin 2.0.20→2.1.20, Gradle 8.9→8.12.1, compileSdk/targetSdk 35→36 | ✅ done |
+| **1.2.1** | Patch — activity detail: `ActivityDetailViewModel.toggleFollow()` used `activity?.username` (nullable, often null for federated authors) instead of `activity?.resolvedUsername`, causing the Follow button to do nothing on activities where `username` wasn't directly populated | ✅ done |
+| **1.2.2** | Patch — API compatibility check against latest FitPub (main, 1.3.0-SNAPSHOT, remote-boosts): endpoint surface + request/response shapes verified compatible; added UI input caps matching the server's newly enforced text limits (activity title 200, description 5000, bio 500, comment 5000, display name 100, password 100) in create/upload/edit-activity/edit-profile/register/comment/change-password forms via new `TextLimits` util | ✅ done |
 | **2.0** | + Iteration 7 — record workouts on-device and share | ⬜ |
 | **3.0** | + Iteration 8 — FitPub Wear companion app | ⬜ |
 

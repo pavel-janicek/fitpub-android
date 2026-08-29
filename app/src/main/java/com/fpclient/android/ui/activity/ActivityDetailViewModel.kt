@@ -102,7 +102,7 @@ class ActivityDetailViewModel(
     }
 
     fun toggleFollow() {
-        val owner = _ui.value.activity?.username ?: return
+        val owner = _ui.value.activity?.resolvedUsername ?: return
         val status = _ui.value.followStatus
         viewModelScope.launch {
             _ui.value = _ui.value.copy(followBusy = true)

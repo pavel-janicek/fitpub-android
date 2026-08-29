@@ -14,12 +14,24 @@ Built with Kotlin and Jetpack Compose (Material 3).
 
 ## API compatibility
 
-This client was tested against **FitPub 1.2.1** (latest release at the time of
-writing, released 2026-07-18). The FitPub server is under active development;
-if you are running a newer or older version and notice breakage, please file an
-issue. The client targets the REST API as implemented by the
-`social.fitpub:fitpub` server artifact; the full endpoint surface is defined in
-`app/src/main/java/com/fitpub/android/data/network/FitPubApi.kt`.
+This client is tested against the **FitPub** server at `/home/janipav/Documents/fitpub`
+(`main` branch, `1.3.0-SNAPSHOT` as of 2026-08-29, after the remote-boosts feature).
+The REST endpoint surface used by the app is unchanged since FitPub 1.2.1 — the
+Follow, Auth, timeline, user/profile, analytics, notification and comment endpoints
+all keep their paths, request shapes, and response shapes. Newer server responses
+carry additive fields (e.g. `boostsCount`, `titleTruncated`) that the client
+tolerates (unknown JSON keys are ignored).
+
+The one behavioral change the app adapted to: the server now **enforces** text
+limits it previously accepted silently — activity title 200 chars, activity
+description 5000 chars, bio 500 chars, comments 5000 chars, display name 100 chars,
+passwords 100 chars — returning HTTP 400 BAD_REQUEST on overflow. The Android UI
+caps all of these inputs to match (`app/src/main/java/com/fpclient/android/util/TextLimits.kt`).
+
+The FitPub server is under active development; if you are running a newer or older
+version and notice breakage, please file an issue. The client targets the REST API
+as implemented by the `social.fitpub:fitpub` server artifact; the full endpoint
+surface is defined in `app/src/main/java/com/fpclient/android/data/network/FitPubApi.kt`.
 
 ## Features
 
