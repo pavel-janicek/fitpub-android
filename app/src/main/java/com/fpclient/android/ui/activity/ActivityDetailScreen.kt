@@ -41,6 +41,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.viewinterop.AndroidView
 import com.fpclient.android.AppContainer
 import com.fpclient.android.data.dto.ActivityUpdateRequest
+import com.fpclient.android.data.dto.ActivityVisibilities
 import com.fpclient.android.data.dto.ReactionPalette
 import com.fpclient.android.ui.AppViewModel
 import com.fpclient.android.ui.components.ErrorState
@@ -138,7 +139,13 @@ fun ActivityDetailScreen(
                         showEditDialog = false
                         vm.updateActivity(
                             activityId,
-                            ActivityUpdateRequest(title = editTitle, description = editDescription),
+                            ActivityUpdateRequest(
+                                title = editTitle,
+                                description = editDescription,
+                                // PUT replaces all metadata; the server requires visibility, so
+                                // preserve the activity's current value (the dialog only edits title/description).
+                                visibility = ui.activity?.visibility ?: ActivityVisibilities.PUBLIC,
+                            ),
                         )
                     },
                 ) { Text("Save") }

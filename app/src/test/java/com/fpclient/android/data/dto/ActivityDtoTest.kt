@@ -1,7 +1,9 @@
 package com.fpclient.android.data.dto
 
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ActivityDtoTest {
@@ -50,4 +52,33 @@ class ActivityDtoTest {
 
         assertEquals("remote-runner", activity.resolvedUsername)
       }
+
+    @Test
+    fun activityUpdateRequest_serializesVisibilitySoServerNotNullIsSatisfied() {
+        // The FitPub server requires `visibility` (@NotNull) on PUT /api/activities/{id}.
+        // Use the same encoder settings as ApiClient (which omits nulls), so a missing
+        // visibility would be dropped from the body and the edit would fail with a 400.
+        val json = Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+            coerceInputValues = true
+            encodeDefaults = true
+            explicitNulls = false
+        }
+
+        val body = json.encodeToString(
+            ActivityUpdateRequest.serializer(),
+            ActivityUpdateRequest(
+                title = "Morning run",
+                description = "Updated description",
+                visibility = "FOLLOWERS",
+            ),
+        )
+
+        assertEquals(
+            """{"title":"Morning run","description":"Updated description","visibility":"FOLLOWERS"}""",
+            body,
+        )
+        assertTrue(body.contains(""""visibility":"FOLLOWERS""""))
+    }
 }

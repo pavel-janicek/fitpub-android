@@ -14,7 +14,7 @@ Built with Kotlin and Jetpack Compose (Material 3).
 
 ## API compatibility
 
-This client is tested against the **FitPub** server at `/home/janipav/Documents/fitpub`
+This client is tested against the **FitPub** 
 (`main` branch, `1.3.0-SNAPSHOT` as of 2026-08-29, after the remote-boosts feature).
 The REST endpoint surface used by the app is unchanged since FitPub 1.2.1 — the
 Follow, Auth, timeline, user/profile, analytics, notification and comment endpoints
