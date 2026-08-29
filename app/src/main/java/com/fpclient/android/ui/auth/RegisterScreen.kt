@@ -63,18 +63,18 @@ fun RegisterContent(
         )
 
         OutlinedTextField(
-            value = username, onValueChange = { username = it },
+            value = username, onValueChange = { username = it.take(50) },
             label = { Text("Username") },
             leadingIcon = { Icon(Icons.Outlined.Person, contentDescription = null) },
             singleLine = true, modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
         )
         OutlinedTextField(
-            value = displayName, onValueChange = { displayName = it },
+            value = displayName, onValueChange = { displayName = it.take(100) },
             label = { Text("Display name (optional)") },
             singleLine = true, modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
         )
         OutlinedTextField(
-            value = email, onValueChange = { email = it },
+            value = email, onValueChange = { email = it.take(255) },
             label = { Text("Email") },
             leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
             singleLine = true,
@@ -83,7 +83,7 @@ fun RegisterContent(
         )
         if (showPasswordField) {
             OutlinedTextField(
-                value = password, onValueChange = { password = it },
+                value = password, onValueChange = { password = it.take(100) },
                 label = { Text("Password") },
                 leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
                 singleLine = true,

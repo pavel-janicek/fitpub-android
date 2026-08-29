@@ -37,7 +37,7 @@ fun ChangePasswordDialog(container: AppContainer, onDismiss: () -> Unit) {
                 )
                 OutlinedTextField(
                     value = new,
-                    onValueChange = { new = it },
+                    onValueChange = { new = it.take(100) },
                     label = { Text("New password") },
                     singleLine = true,
                 )

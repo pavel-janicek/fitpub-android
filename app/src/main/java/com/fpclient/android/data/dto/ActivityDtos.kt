@@ -246,7 +246,8 @@ data class TrackPropertiesDto(
 data class ActivityUpdateRequest(
     val title: String,
     val description: String? = null,
-    val visibility: String? = null,
+    /** Required by the server (PUT replaces metadata); preserve the current value when editing only title/description. */
+    val visibility: String,
     val activityType: String? = null,
     val context: String? = null,
     val indoor: Boolean? = null,

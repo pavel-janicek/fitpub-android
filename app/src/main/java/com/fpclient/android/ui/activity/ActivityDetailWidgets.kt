@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.fpclient.android.data.dto.ReactionPalette
 import com.fpclient.android.util.Format
+import com.fpclient.android.util.TextLimits
 
 @Composable
 fun ReactionRow(activityId: String, viewModel: ActivityDetailViewModel, ui: ActivityDetailViewModel.UiState) {
@@ -55,7 +56,7 @@ fun CommentComposer(activityId: String, viewModel: ActivityDetailViewModel) {
         Text("Comments (${comments.size})", style = MaterialTheme.typography.titleSmall)
         OutlinedTextField(
             value = commentText,
-            onValueChange = { commentText = it },
+            onValueChange = { commentText = it.take(TextLimits.COMMENT) },
             label = { Text("Add a comment") },
             singleLine = true,
             trailingIcon = {

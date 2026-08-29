@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.fpclient.android.data.dto.ActivityTypes
 import com.fpclient.android.data.dto.ManualActivityRequest
 import com.fpclient.android.util.Format
+import com.fpclient.android.util.TextLimits
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -58,7 +59,7 @@ fun ManualForm(vm: CreateViewModel) {
             }
         }
         OutlinedTextField(
-            value = title, onValueChange = { title = it }, label = { Text("Title (optional)") },
+            value = title, onValueChange = { title = it.take(TextLimits.ACTIVITY_TITLE) }, label = { Text("Title (optional)") },
             singleLine = true, modifier = Modifier.fillMaxWidth(),
         )
         OutlinedTextField(

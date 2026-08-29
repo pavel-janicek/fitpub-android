@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.fpclient.android.data.dto.ActivityVisibilities
+import com.fpclient.android.util.TextLimits
 
 @Composable
 fun UploadForm(ui: CreateViewModel.UiState, vm: CreateViewModel) {
@@ -46,14 +47,14 @@ fun UploadForm(ui: CreateViewModel.UiState, vm: CreateViewModel) {
 
     OutlinedTextField(
         value = title,
-        onValueChange = { title = it },
+        onValueChange = { title = it.take(TextLimits.ACTIVITY_TITLE) },
         label = { Text("Title (optional)") },
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
     )
     OutlinedTextField(
         value = description,
-        onValueChange = { description = it },
+        onValueChange = { description = it.take(TextLimits.ACTIVITY_DESCRIPTION) },
         label = { Text("Description (optional)") },
         modifier = Modifier.fillMaxWidth().height(100.dp).padding(top = 8.dp),
     )

@@ -44,6 +44,7 @@ import com.fpclient.android.data.dto.ProfileVisibilities
 import com.fpclient.android.data.dto.UserUpdateRequest
 import com.fpclient.android.data.network.ApiResult
 import com.fpclient.android.ui.AppViewModel
+import com.fpclient.android.util.TextLimits
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -126,14 +127,14 @@ fun EditProfileScreen(
         ) {
             OutlinedTextField(
                 value = displayName,
-                onValueChange = { displayName = it },
+                onValueChange = { displayName = it.take(TextLimits.DISPLAY_NAME) },
                 label = { Text("Display name") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = bio,
-                onValueChange = { bio = it },
+                onValueChange = { bio = it.take(TextLimits.USER_BIO) },
                 label = { Text("Bio") },
                 modifier = Modifier.fillMaxWidth().height(110.dp).padding(top = 8.dp),
             )

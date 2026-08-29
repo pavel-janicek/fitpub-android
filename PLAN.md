@@ -1,12 +1,13 @@
 # FitPub Android — Project Roadmap
 
-Assessment date: 2026-08-25 · Last updated: Release 1.1
-Current app version: **`1.1.1`** (`versionCode` 18)
+Assessment date: 2026-08-25 · Last updated: Release 1.2.4
+Current app version: **`1.2.4`** (`versionCode` 23)
 
 ## Current state
 
-**Stack:** Kotlin + Jetpack Compose (Material3, BOM 2024.09), Navigation-Compose,
+**Stack:** Kotlin 2.1.20 + Jetpack Compose (Material3, BOM 2024.09), Navigation-Compose,
 Retrofit + kotlinx-serialization, OkHttp, DataStore Preferences, Coil, osmdroid.
+AGP 8.8.0 / Gradle 8.12.1, compileSdk 36, targetSdk 36, minSdk 26 (Android 8.0).
 Hand-rolled DI via `AppContainer`, MVVM (ViewModels + Repositories). Targets
 self-hosted FitPub instances (dynamic base URL via interceptor).
 
@@ -17,8 +18,9 @@ creation (file upload FIT/GPX/TCX + manual entry), profile + edit profile,
 settings incl. change password and privacy zones CRUD. The API layer
 (`FitPubApi.kt`, ~70 endpoints) is broad and mostly mirrored by repositories.
 
-**Blocking problem: the project does not compile.**
-`./gradlew assembleDebug` fails with **28 Kotlin errors across 8 files**:
+**Blocking problem: the project did not compile (resolved in 0.2.0).**
+The initial assessment found `./gradlew assembleDebug` failing with **28 Kotlin errors
+across 8 files**. Iteration 1 ("Make it compile") fixed all errors:
 
 | File | Errors | Nature |
 |---|---|---|
@@ -34,9 +36,10 @@ settings incl. change password and privacy zones CRUD. The API layer
 Other observations:
 - Dead directories `ui/map/`, `ui/screens/` (empty leftovers).
 - `.gradle/`, `app/build/`, `.kotlin/` artifacts are **committed to git**; no `.gitignore`.
-- No tests of any kind (no test source sets).
-- No README, LICENSE, or CI.
-- `ApiClient.isDebug` hardcoded to `true`; AGP 8 has `buildConfig=false` by default so `BuildConfig.DEBUG` isn't available yet.
+- Tests now exist: JVM unit tests + Compose UI smoke tests + GitHub Actions CI (added in 0.5.0).
+- README now exists (added in 0.2.0). No LICENSE or CI artifact signing yet.
+- `ApiClient.isDebug` uses `BuildConfig.DEBUG` (the module sets `buildConfig = true`); the
+  initial assessment's note about AGP 8 disabling buildConfig by default was resolved.
 - Auth token stored unencrypted in DataStore (acknowledged in code comment).
 - API endpoints defined but **not wired to any UI**: heatmap (own/user),
   batch import jobs, activity route download, activity image, profile header
@@ -58,7 +61,9 @@ Pre-1.0 policy: each completed roadmap iteration bumps the app to
 shipped APK reflects real, verified progress. Feature work done outside
 the numbered iterations (guest mode, instance switching from login/settings,
 federated search, layout/inset fixes) folds into the next pre-release bump.
-From v1.0 onward the gates above are the versions — recorded here and set
+From v1.0 onward the gates above (v1.0, v2.0, v3.0) are the major milestones;
+post-1.0 minor/patch releases (1.1, 1.1.1, 1.2, …) track incremental
+hardening, renames, and platform-targeting work — recorded here and set
 in `app/build.gradle.kts` at each release.
 
 Progress ledger (kept up to date per iteration):
@@ -83,6 +88,11 @@ Progress ledger (kept up to date per iteration):
 | **1.0** | All of the above → first stable release | ✅ done |
 | **1.1** | Application renaming: rename to "FP Client", unofficial client README notice, API compatibility/version info, version bump | ✅ done |
 | **1.1.1** | Patch — package rename from `com.fitpub.android` to `com.fpclient.android` | ✅ done |
+| **1.2** | Target Android 16 (API 36): upgrade AGP 8.5.2→8.8.0, Kotlin 2.0.20→2.1.20, Gradle 8.9→8.12.1, compileSdk/targetSdk 35→36 | ✅ done |
+| **1.2.1** | Patch — activity detail: `ActivityDetailViewModel.toggleFollow()` used `activity?.username` (nullable, often null for federated authors) instead of `activity?.resolvedUsername`, causing the Follow button to do nothing on activities where `username` wasn't directly populated | ✅ done |
+| **1.2.2** | Patch — API compatibility check against latest FitPub (main, 1.3.0-SNAPSHOT, remote-boosts): endpoint surface + request/response shapes verified compatible; added UI input caps matching the server's newly enforced text limits (activity title 200, description 5000, bio 500, comment 5000, display name 100, password 100) in create/upload/edit-activity/edit-profile/register/comment/change-password forms via new `TextLimits` util | ✅ done |
+| **1.2.3** | Patch — **editing an activity failed with 400**: the edit dialog sent only `title`/`description` to `PUT /api/activities/{id}`, but the server's `ActivityUpdateRequest.visibility` is `@NotNull` (and the client's JSON encoder omits nulls), so every save was rejected. `ActivityUpdateRequest.visibility` is now required (mirrors the server contract) and the detail screen preserves the activity's current visibility when saving title/description edits | ✅ done |
+| **1.2.4** | Patch — **release-build registration failed** ("Unable to create converter for class java.lang.Object for method i.y"): R8 full mode (AGP 8.x + `proguard-android-optimize.txt`) strips generic signatures from non-kept classes, so Retrofit's suspend endpoints (`Continuation<Response<T>>`) resolved to `java.lang.Object` at runtime. Added Retrofit's documented R8 full-mode keep rules (`kotlin.coroutines.Continuation` + response-type `-if/-keep` rule). Also fixed the kotlinx.serialization keep rules, which pointed at the pre-rename package `com.fitpub.android.data.dto` (no-op since the 1.1.1 rename) and now target `com.fpclient.android` per the library's official rules | ✅ done |
 | **2.0** | + Iteration 7 — record workouts on-device and share | ⬜ |
 | **3.0** | + Iteration 8 — FitPub Wear companion app | ⬜ |
 

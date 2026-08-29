@@ -41,12 +41,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.viewinterop.AndroidView
 import com.fpclient.android.AppContainer
 import com.fpclient.android.data.dto.ActivityUpdateRequest
+import com.fpclient.android.data.dto.ActivityVisibilities
 import com.fpclient.android.data.dto.ReactionPalette
 import com.fpclient.android.ui.AppViewModel
 import com.fpclient.android.ui.components.ErrorState
 import com.fpclient.android.ui.components.LoadingIndicator
 import com.fpclient.android.ui.components.StatRow
 import com.fpclient.android.util.Format
+import com.fpclient.android.util.TextLimits
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.BoundingBox
 import org.osmdroid.views.MapView
@@ -119,13 +121,13 @@ fun ActivityDetailScreen(
                 Column {
                     OutlinedTextField(
                         value = editTitle,
-                        onValueChange = { editTitle = it },
+                        onValueChange = { editTitle = it.take(TextLimits.ACTIVITY_TITLE) },
                         label = { Text("Title") },
                         singleLine = true,
                     )
                     OutlinedTextField(
                         value = editDescription,
-                        onValueChange = { editDescription = it },
+                        onValueChange = { editDescription = it.take(TextLimits.ACTIVITY_DESCRIPTION) },
                         label = { Text("Description") },
                         modifier = Modifier.padding(top = 8.dp),
                     )
@@ -137,7 +139,13 @@ fun ActivityDetailScreen(
                         showEditDialog = false
                         vm.updateActivity(
                             activityId,
-                            ActivityUpdateRequest(title = editTitle, description = editDescription),
+                            ActivityUpdateRequest(
+                                title = editTitle,
+                                description = editDescription,
+                                // PUT replaces all metadata; the server requires visibility, so
+                                // preserve the activity's current value (the dialog only edits title/description).
+                                visibility = ui.activity?.visibility ?: ActivityVisibilities.PUBLIC,
+                            ),
                         )
                     },
                 ) { Text("Save") }
