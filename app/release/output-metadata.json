@@ -4,15 +4,15 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "com.fitpub.android",
+  "applicationId": "com.fpclient.android",
   "variantName": "release",
   "elements": [
     {
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 17,
-      "versionName": "1.1",
+      "versionCode": 18,
+      "versionName": "1.1.1",
       "outputFile": "app-release.apk"
     }
   ],
