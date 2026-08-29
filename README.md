@@ -56,7 +56,7 @@ the manifest. If you only ever talk HTTPS, remove both to harden the app.
 
 ## Building
 
-Requirements: JDK 17, Android SDK with platform 35.
+Requirements: JDK 17, Android SDK with platform 36 (Android 16).
 
 ```bash
 ./gradlew assembleDebug        # debug APK at app/build/outputs/apk/debug/
