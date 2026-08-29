@@ -1,7 +1,7 @@
 # FitPub Android — Project Roadmap
 
-Assessment date: 2026-08-25 · Last updated: Release 1.2.3
-Current app version: **`1.2.3`** (`versionCode` 22)
+Assessment date: 2026-08-25 · Last updated: Release 1.2.4
+Current app version: **`1.2.4`** (`versionCode` 23)
 
 ## Current state
 
@@ -92,6 +92,7 @@ Progress ledger (kept up to date per iteration):
 | **1.2.1** | Patch — activity detail: `ActivityDetailViewModel.toggleFollow()` used `activity?.username` (nullable, often null for federated authors) instead of `activity?.resolvedUsername`, causing the Follow button to do nothing on activities where `username` wasn't directly populated | ✅ done |
 | **1.2.2** | Patch — API compatibility check against latest FitPub (main, 1.3.0-SNAPSHOT, remote-boosts): endpoint surface + request/response shapes verified compatible; added UI input caps matching the server's newly enforced text limits (activity title 200, description 5000, bio 500, comment 5000, display name 100, password 100) in create/upload/edit-activity/edit-profile/register/comment/change-password forms via new `TextLimits` util | ✅ done |
 | **1.2.3** | Patch — **editing an activity failed with 400**: the edit dialog sent only `title`/`description` to `PUT /api/activities/{id}`, but the server's `ActivityUpdateRequest.visibility` is `@NotNull` (and the client's JSON encoder omits nulls), so every save was rejected. `ActivityUpdateRequest.visibility` is now required (mirrors the server contract) and the detail screen preserves the activity's current visibility when saving title/description edits | ✅ done |
+| **1.2.4** | Patch — **release-build registration failed** ("Unable to create converter for class java.lang.Object for method i.y"): R8 full mode (AGP 8.x + `proguard-android-optimize.txt`) strips generic signatures from non-kept classes, so Retrofit's suspend endpoints (`Continuation<Response<T>>`) resolved to `java.lang.Object` at runtime. Added Retrofit's documented R8 full-mode keep rules (`kotlin.coroutines.Continuation` + response-type `-if/-keep` rule). Also fixed the kotlinx.serialization keep rules, which pointed at the pre-rename package `com.fitpub.android.data.dto` (no-op since the 1.1.1 rename) and now target `com.fpclient.android` per the library's official rules | ✅ done |
 | **2.0** | + Iteration 7 — record workouts on-device and share | ⬜ |
 | **3.0** | + Iteration 8 — FitPub Wear companion app | ⬜ |
 
