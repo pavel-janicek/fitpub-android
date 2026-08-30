@@ -13,16 +13,22 @@ android {
         applicationId = "com.fpclient.android"
         minSdk = 26
         targetSdk = 36
-        versionCode = 23
-        versionName = "1.2.4"
+        versionCode = 25
+        versionName = "1.3.1"
     }
 
     signingConfigs {
-        create("release") {
-            storeFile = file(System.getenv("KEYSTORE_PATH") ?: "release.keystore")
-            storePassword = System.getenv("KEYSTORE_PASSWORD")
-            keyAlias = System.getenv("KEY_ALIAS")
-            keyPassword = System.getenv("KEY_PASSWORD")
+        // Only wired up when keystore credentials are provided via the
+        // environment (local release signing). F-Droid builds unsigned
+        // releases from source and re-signs with their own key, so the
+        // config must simply be absent — never fail — when unset.
+        if (System.getenv("KEYSTORE_PATH") != null) {
+            create("release") {
+                storeFile = file(System.getenv("KEYSTORE_PATH")!!)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
         }
     }
 
@@ -30,7 +36,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.findByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

@@ -246,6 +246,12 @@ private fun FitPubNavGraph(
                 onOpenPrivacyZones = { navController.navigate(Routes.PRIVACY_ZONES) },
                 onChangeInstance = { navController.navigate(Routes.SERVER_SETUP) },
                 onOpenBatchImport = { navController.navigate(Routes.BATCH_IMPORT) },
+                onOpenAbout = { navController.navigate(Routes.ABOUT) },
+            )
+        }
+        composable(Routes.ABOUT) {
+            com.fpclient.android.ui.settings.AboutScreen(
+                onBack = { navController.popBackStack() },
             )
         }
         composable(Routes.BATCH_IMPORT) {

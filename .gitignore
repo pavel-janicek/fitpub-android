@@ -20,5 +20,9 @@ local.properties
 *.jks
 *.keystore
 
+# Release output (F-Droid: source repo must be binary-free)
+app/release/
+*.keystore
+
 # OS
 .DS_Store

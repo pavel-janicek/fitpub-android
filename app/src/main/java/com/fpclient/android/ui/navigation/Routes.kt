@@ -14,6 +14,7 @@ object Routes {
     const val EDIT_PROFILE = "edit_profile"
     const val PRIVACY_ZONES = "privacy_zones"
     const val SETTINGS = "settings"
+    const val ABOUT = "about"
     const val BATCH_IMPORT = "batch_import"
     const val FOLLOW_LIST = "follow_list/{username}/{type}"
 

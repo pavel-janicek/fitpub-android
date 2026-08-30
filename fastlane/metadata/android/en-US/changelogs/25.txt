@@ -1,0 +1,3 @@
+F-Droid compatibility: AGPL-3.0 license, binary-free source repository,
+unsigned release builds for the F-Droid buildserver, and store metadata
+for automatic import. No user-facing changes.

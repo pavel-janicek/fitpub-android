@@ -44,6 +44,7 @@ fun SettingsScreen(
     onOpenPrivacyZones: () -> Unit,
     onChangeInstance: () -> Unit,
     onOpenBatchImport: () -> Unit,
+    onOpenAbout: () -> Unit,
 ) {
     val unitSystem by appViewModel.unitSystem.collectAsState()
     val sessionState by appViewModel.uiState.collectAsState()
@@ -126,6 +127,15 @@ fun SettingsScreen(
                             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                         ) { Text("Batch import activities") }
                     }
+                }
+            }
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Text("About", style = MaterialTheme.typography.titleSmall)
+                    OutlinedButton(
+                        onClick = onOpenAbout,
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    ) { Text("About this app") }
                 }
             }
             Card(modifier = Modifier.fillMaxWidth()) {
