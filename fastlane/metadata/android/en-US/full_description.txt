@@ -1,0 +1,17 @@
+FP Client is an unofficial Android client for FitPub, a federated,
+self-hosted fitness-tracking platform. Point the app at any FitPub instance
+you or your community run and sign in with that account — the app talks
+exclusively to the instance you configure.
+
+Features:
+* Home and federated timelines with pagination
+* Create activities by uploading FIT/GPX/TCX files or entering them manually
+* Track visualization on an OpenStreetMap map (osmdroid)
+* Comments, reactions, follows and follow requests
+* Analytics: weekly distance, training load, form and summaries
+* Privacy zones, batch import, notification feed
+* Guest mode for browsing a federated timeline without an account
+
+No third-party tracking, no crash-reporting services, no proprietary
+libraries: the app identifies itself to servers with the User-Agent
+"FP-Client/<version>".

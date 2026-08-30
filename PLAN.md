@@ -1,7 +1,7 @@
 # FitPub Android — Project Roadmap
 
-Assessment date: 2026-08-25 · Last updated: Release 1.3
-Current app version: **`1.3`** (`versionCode` 24)
+Assessment date: 2026-08-25 · Last updated: Release 1.3.1
+Current app version: **`1.3.1`** (`versionCode` 25)
 
 ## Current state
 
@@ -94,10 +94,25 @@ Progress ledger (kept up to date per iteration):
 | **1.2.3** | Patch — **editing an activity failed with 400**: the edit dialog sent only `title`/`description` to `PUT /api/activities/{id}`, but the server's `ActivityUpdateRequest.visibility` is `@NotNull` (and the client's JSON encoder omits nulls), so every save was rejected. `ActivityUpdateRequest.visibility` is now required (mirrors the server contract) and the detail screen preserves the activity's current visibility when saving title/description edits | ✅ done |
 | **1.2.4** | Patch — **release-build registration failed** ("Unable to create converter for class java.lang.Object for method i.y"): R8 full mode (AGP 8.x + `proguard-android-optimize.txt`) strips generic signatures from non-kept classes, so Retrofit's suspend endpoints (`Continuation<Response<T>>`) resolved to `java.lang.Object` at runtime. Added Retrofit's documented R8 full-mode keep rules (`kotlin.coroutines.Continuation` + response-type `-if/-keep` rule). Also fixed the kotlinx.serialization keep rules, which pointed at the pre-rename package `com.fitpub.android.data.dto` (no-op since the 1.1.1 rename) and now target `com.fpclient.android` per the library's official rules | ✅ done |
 | **1.3** | Feature — Settings gains an **About** screen: app version (from `BuildConfig`, cannot drift), contact via the FitPub Matrix room ("FitPub Users"), bug-reporting guidance via GitHub Issues (incl. "please include the app version"), info for instance administrators about the app's `FP-Client/<version>` HTTP User-Agent, project link and OpenStreetMap attribution. Added `VERSION_CHECKLIST.md` to verify version propagation on every release | ✅ done |
+| **1.3.1** | F-Droid compatibility prep: AGPL-3.0 `LICENSE` added (was missing — hard F-Droid requirement), release binaries untracked from git + `app/release/` and `*.keystore` gitignored (source repo must be binary-free), release signing config made conditional so unsigned release builds succeed for the F-Droid buildserver (which re-signs with its own key), fastlane metadata (`fastlane/metadata/android/en-US/`: title, short/full description, changelogs) for F-Droid auto-import. Dependency audit clean: all libs are Apache-2.0/MIT from Maven Central/Google, no proprietary SDKs/services | ✅ done |
 | **2.0** | + Iteration 7 — record workouts on-device and share | ⬜ |
 | **3.0** | + Iteration 8 — FitPub Wear companion app | ⬜ |
 
 ## Roadmap — one prompt per iteration
+
+### F-Droid publishing ⬜ (process, outside this repo)
+> "Submit FP Client to F-Droid. Prerequisites verified in-repo (AGPL-3.0 LICENSE,
+> binary-free source, unsigned release builds, fastlane metadata). Steps:
+> fork https://gitlab.com/fdroid/fdroiddata and add `metadata/com.fpclient.android.yml`
+> (License: AGPL-3.0; AuthorName/AuthorEmail; Website: https://github.com/pavel-janicek/fp-client;
+> SourceCode: the GitHub repo; IssueTracker; Changelog; Summary/Description —
+> verify the fastlane metadata under fastlane/metadata/android is picked up, or
+> inline it in the yml); add a `Builds:` entry for versionCode 24 (or the current
+> release tag) pinned to the release commit; open a merge request and respond to
+> reviewer feedback (typical checks: no prebuilt blobs, no tracking, UpdateCheckMode
+> suitable — suggest `HTTP` against GitHub releases or `Git` tags); after
+> publication, add the F-Droid badge and install link to README.md and note the
+> package identity (com.fpclient.android) in VERSION_CHECKLIST.md."
 
 ### Iteration 1 — Make it compile ✅
 > "FitPub Android does not compile — `./gradlew assembleDebug` reports 28 Kotlin

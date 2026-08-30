@@ -1,0 +1,2 @@
+About screen in Settings: app version, contact (FitPub Matrix room),
+bug-reporting guidance, and User-Agent info for instance administrators.
