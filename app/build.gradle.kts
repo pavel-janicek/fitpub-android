@@ -57,6 +57,16 @@ android {
     testOptions {
         unitTests.isReturnDefaultValues = true
     }
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+    packaging {
+        resources {
+            excludes += "META-INF/dependencies/*"
+            excludes += "META-INF/com.android.tools.build.gradle/*"
+        }
+    }
 }
 
 dependencies {
