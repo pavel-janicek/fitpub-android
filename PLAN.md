@@ -1,7 +1,7 @@
 # FitPub Android — Project Roadmap
 
-Assessment date: 2026-08-25 · Last updated: Release 1.3.1
-Current app version: **`1.3.1`** (`versionCode` 25)
+Assessment date: 2026-08-25 · Last updated: Release 1.3.2
+Current app version: **`1.3.2`** (`versionCode` 26)
 
 ## Current state
 
@@ -95,24 +95,43 @@ Progress ledger (kept up to date per iteration):
 | **1.2.4** | Patch — **release-build registration failed** ("Unable to create converter for class java.lang.Object for method i.y"): R8 full mode (AGP 8.x + `proguard-android-optimize.txt`) strips generic signatures from non-kept classes, so Retrofit's suspend endpoints (`Continuation<Response<T>>`) resolved to `java.lang.Object` at runtime. Added Retrofit's documented R8 full-mode keep rules (`kotlin.coroutines.Continuation` + response-type `-if/-keep` rule). Also fixed the kotlinx.serialization keep rules, which pointed at the pre-rename package `com.fitpub.android.data.dto` (no-op since the 1.1.1 rename) and now target `com.fpclient.android` per the library's official rules | ✅ done |
 | **1.3** | Feature — Settings gains an **About** screen: app version (from `BuildConfig`, cannot drift), contact via the FitPub Matrix room ("FitPub Users"), bug-reporting guidance via GitHub Issues (incl. "please include the app version"), info for instance administrators about the app's `FP-Client/<version>` HTTP User-Agent, project link and OpenStreetMap attribution. Added `VERSION_CHECKLIST.md` to verify version propagation on every release | ✅ done |
 | **1.3.1** | F-Droid compatibility prep: AGPL-3.0 `LICENSE` added (was missing — hard F-Droid requirement), release binaries untracked from git + `app/release/` and `*.keystore` gitignored (source repo must be binary-free), release signing config made conditional so unsigned release builds succeed for the F-Droid buildserver (which re-signs with its own key), fastlane metadata (`fastlane/metadata/android/en-US/`: title, short/full description, changelogs) for F-Droid auto-import. Dependency audit clean: all libs are Apache-2.0/MIT from Maven Central/Google, no proprietary SDKs/services | ✅ done |
+| **1.3.2** | F-Droid submission — reproducibility fix: the reference binary previously pinned to the pre-merge `Release-1.3` commit failed F-Droid's byte-compare (only `META-INF/version-control-info.textproto` differed). Cut as a fresh release built from the merged `main` commit so the uploaded `app-release.apk` matches the F-Droid buildserver output exactly. No user-facing changes. | ✅ done |
 | **2.0** | + Iteration 7 — record workouts on-device and share | ⬜ |
 | **3.0** | + Iteration 8 — FitPub Wear companion app | ⬜ |
 
 ## Roadmap — one prompt per iteration
 
 ### F-Droid publishing ⬜ (process, outside this repo)
-> "Submit FP Client to F-Droid. Prerequisites verified in-repo (AGPL-3.0 LICENSE,
-> binary-free source, unsigned release builds, fastlane metadata). Steps:
-> fork https://gitlab.com/fdroid/fdroiddata and add `metadata/com.fpclient.android.yml`
-> (License: AGPL-3.0; AuthorName/AuthorEmail; Website: https://github.com/pavel-janicek/fp-client;
-> SourceCode: the GitHub repo; IssueTracker; Changelog; Summary/Description —
-> verify the fastlane metadata under fastlane/metadata/android is picked up, or
-> inline it in the yml); add a `Builds:` entry for versionCode 24 (or the current
-> release tag) pinned to the release commit; open a merge request and respond to
-> reviewer feedback (typical checks: no prebuilt blobs, no tracking, UpdateCheckMode
-> suitable — suggest `HTTP` against GitHub releases or `Git` tags); after
-> publication, add the F-Droid badge and install link to README.md and note the
-> package identity (com.fpclient.android) in VERSION_CHECKLIST.md."
+> "Submit FP Client to F-Droid. In-repo prerequisites are DONE (AGPL-3.0 LICENSE,
+> binary-free source, unsigned release builds, fastlane metadata incl. icon).
+> The fdroiddata fork `paveljanicek-cz-group/fdroid-data` (branch `fp-client`) has
+> `metadata/com.fpclient.android.yml` with: AGPL-3.0-only, Authorname/Email, WebSite/
+> SourceCode/IssueTracker/Changelog → https://github.com/pavel-janicek/fp-client,
+> `UpdateCheckMode: Tags` + `AutoUpdateMode: Version`, `Binaries:` template
+> (`.../download/Release_%v/app-release.apk`), `AllowedAPKSigningKeys` pinned to the
+> signing cert SHA-256, and a `Builds:` entry. MR #1 is open against fdroid/fdroiddata.
+>
+> CURRENT BLOCKER: the reference-binary reproducibility check. F-Droid byte-compares
+> the uploaded `app-release.apk` against its own buildserver output (only allowed diff
+> is the signature); the APK must embed the exact git revision F-Droid builds from via
+> `META-INF/version-control-info.textproto`. Fix = build the release APK FROM the same
+> tag/commit the yml pins, and verify `unzip -p app-release.apk META-INF/version-control-info.textproto`
+> before uploading. 1.3.2 is the first release cut this way.
+>
+> NEXT STEPS (per release): (1) tag `Release_x.y.z` on `main` AFTER merging the version bump;
+> (2) `git checkout Release_x.y.z` and build signed AAB+APK from that exact tag; (3) verify the
+> embedded revision matches the tag; (4) publish GitHub release `Release_x.y.z` with `app-release.apk`;
+> (5) update the yml `Builds:` entry (commit/versionCode/versionName) in the fdroid-data fork to the
+> new tag and push — with `UpdateCheckMode: Tags`+`AutoUpdateMode: Version` enabled, F-Droid then
+> picks the newest tag automatically for subsequent releases.
+>
+> Run the MR pipeline (lint/rewritemeta/checks/build) on the self-hosted local GitLab runner
+> (`Pavlovo`, docker executor, ~/.gitlab-runner config) to avoid exhausting GitLab.com compute
+> minutes; `fdroid build` needs the runner tagged `saas-linux-medium-amd64`. Keep the signing
+> keystore backed up (it is pinned in `AllowedAPKSigningKeys`).
+>
+> AFTER PUBLICATION: add the F-Droid badge + install link to README.md and note the package
+> identity (`com.fpclient.android`) in VERSION_CHECKLIST.md."
 
 ### Iteration 1 — Make it compile ✅
 > "FitPub Android does not compile — `./gradlew assembleDebug` reports 28 Kotlin
