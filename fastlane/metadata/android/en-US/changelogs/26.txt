@@ -1,0 +1,3 @@
+F-Droid submission (release 1.3.2): rebuilt the release artifact from the
+merged release branch so the uploaded APK matches the F-Droid buildserver
+output exactly (reproducibility / reference-binary check). No user-facing changes.
