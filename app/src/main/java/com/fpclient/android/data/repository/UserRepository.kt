@@ -2,6 +2,7 @@ package com.fpclient.android.data.repository
 
 import android.content.Context
 import android.net.Uri
+import com.fpclient.android.data.dto.ActorDto
 import com.fpclient.android.data.dto.ChangePasswordRequest
 import com.fpclient.android.data.dto.EmailChangeStatusResponse
 import com.fpclient.android.data.dto.FollowStatusDto
@@ -40,6 +41,19 @@ class UserRepository(
                 return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
             }
             ApiResult.Success(response.body() ?: error("Empty profile response"))
+        } catch (e: Exception) {
+            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
+        }
+    }
+
+    /** Resolves a possibly federated handle (`@user@host`) to an [ActorDto] via the server's WebFinger discovery. */
+    suspend fun discoverRemote(handle: String): ApiResult<ActorDto> {
+        return try {
+            val response = api.discoverRemote(handle.trim())
+            if (!response.isSuccessful) {
+                return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
+            }
+            ApiResult.Success(response.body() ?: error("Empty discover response"))
         } catch (e: Exception) {
             ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }

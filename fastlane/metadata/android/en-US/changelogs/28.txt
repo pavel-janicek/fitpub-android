@@ -1,0 +1,7 @@
+GUI overhaul (release 1.3.5):
+- Login: "Change instance" is now a prominent button for better visibility.
+- Comment composer: no longer hidden by the soft keyboard — the field scrolls into view.
+- Timeline: feed switches (Following / Public / My activities) are now floating tabs.
+- Federation: usernames now show the full @username@instance handle so remote athletes keep their home instance.
+- Activity detail: tapping the author searches by their full federated handle.
+- Timeline: reload button now works, plus pull-down-to-refresh gesture.

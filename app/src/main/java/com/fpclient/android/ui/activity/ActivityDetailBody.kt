@@ -8,16 +8,20 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.fpclient.android.ui.components.StatRow
 import com.fpclient.android.util.Format
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun DetailBody(
@@ -29,14 +33,20 @@ internal fun DetailBody(
     modifier: Modifier = Modifier,
 ) {
     val activity = ui.activity ?: return
-    LazyColumn(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    LazyColumn(
+        state = listState,
+        modifier = modifier.fillMaxSize().imePadding(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         item {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(activity.title ?: Format.uppercaseFirst(activity.activityType), style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(6.dp))
                 AuthorCard(
                     ui = ui,
-                    username = activity.resolvedUsername,
+                    username = activity.fullHandle ?: activity.resolvedUsername,
                     displayName = activity.resolvedDisplayName,
                     avatarUrl = activity.resolvedAvatarUrl,
                     onOpenProfile = onOpenProfile,
@@ -70,7 +80,18 @@ internal fun DetailBody(
         }
         item { TrackMap(segments = viewModel.trackSegments(), hasTrack = ui.activity?.simplifiedTrack != null) }
         item { ReactionRow(activityId = activityId, viewModel = viewModel, ui = ui) }
-        item { CommentComposer(activityId = activityId, viewModel = viewModel) }
+        item {
+            CommentComposer(
+                activityId = activityId,
+                viewModel = viewModel,
+                onFocused = {
+                    // Keep the composer visible above the soft keyboard.
+                    scope.launch {
+                        listState.animateScrollToItem(listState.layoutInfo.totalItemsCount - 1)
+                    }
+                },
+            )
+        }
     }
 }
 
@@ -114,7 +135,10 @@ private fun AuthorCard(
                 )
                 Text(
                     buildString {
-                        if (!username.isNullOrBlank()) append("@$username")
+                        if (!username.isNullOrBlank()) {
+                            val handle = username.trim()
+                            append(if (handle.startsWith("@")) handle else "@$handle")
+                        }
                         if (!ui.activity?.startedAt.isNullOrBlank()) {
                             if (isNotEmpty()) append(" · ")
                             append(Format.dateTime(ui.activity?.startedAt))

@@ -41,6 +41,7 @@ fun ErrorState(
     message: String?,
     modifier: Modifier = Modifier,
     onRetry: (() -> Unit)? = null,
+    buttonLabel: String = "Retry",
 ) {
     Column(
         modifier = modifier.fillMaxWidth().padding(24.dp),
@@ -55,7 +56,7 @@ fun ErrorState(
         )
         if (onRetry != null) {
             Button(onClick = onRetry, modifier = Modifier.padding(top = 12.dp)) {
-                Text("Retry")
+                Text(buttonLabel)
             }
         }
     }

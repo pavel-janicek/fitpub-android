@@ -61,6 +61,10 @@ data class ActivityDto(
         get() = displayName ?: ownerDisplayName ?: author?.displayName ?: owner?.displayName ?: user?.displayName
     val resolvedAvatarUrl: String?
         get() = avatarUrl ?: ownerAvatarUrl ?: author?.avatarUrl ?: owner?.avatarUrl ?: user?.avatarUrl
+
+    /** Full `@username@host` handle so remote authors keep their home instance. */
+    val fullHandle: String?
+        get() = com.fpclient.android.util.ActorHandle.full(resolvedUsername, actorUri)
 }
 
 @Serializable
@@ -160,7 +164,11 @@ data class TimelineActivityDto(
     val indoor: Boolean? = null,
     val context: ActivityContextDto? = null,
     val metrics: TimelineMetricsDto? = null,
-)
+) {
+    /** Full `@username@host` handle so remote authors keep their home instance. */
+    val fullHandle: String?
+        get() = com.fpclient.android.util.ActorHandle.full(username, actorUri)
+}
 
 @Serializable
 data class TimelineMetricsDto(
