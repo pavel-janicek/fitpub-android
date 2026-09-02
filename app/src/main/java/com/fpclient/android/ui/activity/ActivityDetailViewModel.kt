@@ -54,6 +54,8 @@ class ActivityDetailViewModel(
     data class UiState(
         val loading: Boolean = false,
         val error: String? = null,
+        /** HTTP status code of the last error, if any. Used to detect 404 (federated activity not loadable). */
+        val errorStatusCode: Int? = null,
         val activity: com.fpclient.android.data.dto.ActivityDto? = null,
         val likes: List<LikeDto> = emptyList(),
         val comments: List<CommentDto> = emptyList(),
@@ -79,7 +81,7 @@ class ActivityDetailViewModel(
                     loadLikes(activityId)
                     loadFollowStatus()
                 }
-                is ApiResult.Error -> _ui.value = _ui.value.copy(loading = false, error = r.message)
+                is ApiResult.Error -> _ui.value = _ui.value.copy(loading = false, error = r.message, errorStatusCode = r.statusCode)
             }
         }
     }

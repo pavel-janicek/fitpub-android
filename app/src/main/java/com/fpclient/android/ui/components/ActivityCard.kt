@@ -32,7 +32,14 @@ import com.fpclient.android.util.Format
 import com.fpclient.android.util.UrlBuilder
 
 @Composable
-fun ActivityCard(activity: TimelineActivityDto, serverUrl: String, unitSystem: String, onClick: () -> Unit, onAuthorClick: (() -> Unit)? = null) {
+fun ActivityCard(
+    activity: TimelineActivityDto,
+    serverUrl: String,
+    unitSystem: String,
+    onClick: () -> Unit,
+    onAuthorClick: ((String) -> Unit)? = null,
+) {
+    val authorHandle = activity.fullHandle ?: activity.username?.let { "@$it" }
     Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp), shape = RoundedCornerShape(16.dp)) {
         Column(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -53,7 +60,7 @@ fun ActivityCard(activity: TimelineActivityDto, serverUrl: String, unitSystem: S
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = if (onAuthorClick != null) Modifier.clickable(onClick = onAuthorClick) else Modifier,
+                        modifier = if (onAuthorClick != null && authorHandle != null) Modifier.clickable { onAuthorClick(authorHandle) } else Modifier,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )

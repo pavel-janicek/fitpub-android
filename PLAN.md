@@ -1,7 +1,7 @@
 # FitPub Android — Project Roadmap
 
-Assessment date: 2026-08-25 · Last updated: Release 1.3.4
-Current app version: **`1.3.4`** (`versionCode` 27)
+Assessment date: 2026-08-25 · Last updated: Release 1.3.5
+Current app version: **`1.3.5`** (`versionCode` 28)
 
 ## Current state
 
@@ -97,6 +97,7 @@ Progress ledger (kept up to date per iteration):
 | **1.3.1** | F-Droid compatibility prep: AGPL-3.0 `LICENSE` added (was missing — hard F-Droid requirement), release binaries untracked from git + `app/release/` and `*.keystore` gitignored (source repo must be binary-free), release signing config made conditional so unsigned release builds succeed for the F-Droid buildserver (which re-signs with its own key), fastlane metadata (`fastlane/metadata/android/en-US/`: title, short/full description, changelogs) for F-Droid auto-import. Dependency audit clean: all libs are Apache-2.0/MIT from Maven Central/Google, no proprietary SDKs/services | ✅ done |
 | **1.3.2** | F-Droid submission — reproducibility fix: the reference binary previously pinned to the pre-merge `Release-1.3` commit failed F-Droid's byte-compare (only `META-INF/version-control-info.textproto` differed). Cut as a fresh release built from the merged `main` commit so the uploaded `app-release.apk` matches the F-Droid buildserver output exactly. No user-facing changes. | ✅ done |
 | **1.3.4** | **API compatibility update for FitPub `main` (post 1.3.2):** web/consumer endpoints migrated under `/api/web/` (auth, timeline, activities, likes/comments, users, analytics, notifications, privacy-zones, heatmap, batch-import, push `vapid-key`); the session JWT is now delivered and read only as the `JWT_TOKEN` HttpOnly cookie — `Authorization: Bearer <token>` is no longer accepted, so the app now authenticates via cookie + CSRF instead of a bearer header; CSRF protection now enforced on every mutating call (`X-XSRF-TOKEN` header + `XSRF-TOKEN` cookie, primed via a registration-status GET). Removed the deprecated `GET /api/activities/{id}/track` endpoint; the activity-detail map now sources its polyline segments from the `simplifiedTrack` field embedded in `ActivityDTO`. Published federation routes (`GET /api/activities/{id}`, `GET /api/activities/{id}/image`) are preserved. Bump versionCode 27 / versionName 1.3.4; `FP-Client/1.3.4` user-agent. | ✅ done |
+| **1.3.5** | **GUI overhaul:** "Change instance" promoted to a full `OutlinedButton` on the login screen for better visibility; comment composer on the activity-detail screen no longer hidden by the soft keyboard (body uses `imePadding()` + the composer's text field reports focus so the `LazyColumn` scrolls it into view); timeline feed switches (Following / Public / My activities) restyled as a floating `ScrollableTabRow` matching the analytics tab; usernames across timeline cards and follow lists now carry the full federated `@username@instance` handle (stored in DTOs via `ActorHandle.full`) so remote actors keep their home instance; activity-detail author card opens a profile search by the full handle; timeline reload button wired to `refresh()` plus pull-to-refresh gesture via `PullToRefreshBox`. Bump versionCode 28 / versionName 1.3.5; `FP-Client/1.3.5` user-agent. | ✅ done |
 | **2.0** | + Iteration 7 — record workouts on-device and share | ⬜ |
 | **3.0** | + Iteration 8 — FitPub Wear companion app | ⬜ |
 

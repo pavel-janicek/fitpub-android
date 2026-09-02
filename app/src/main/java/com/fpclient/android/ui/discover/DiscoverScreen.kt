@@ -52,6 +52,8 @@ class DiscoverViewModel(
         val error: String? = null,
         val query: String = "",
         val results: List<UserDto> = emptyList(),
+        /** Usernames currently mid follow-toggle, so the button can show a spinner. */
+        val busyUsers: Set<String> = emptySet(),
     )
 
     private val _ui = MutableStateFlow(UiState())
@@ -88,6 +90,42 @@ class DiscoverViewModel(
 
     private suspend fun search(query: String) {
         _ui.value = _ui.value.copy(loading = true, error = null)
+        val cleaned = query.trim()
+        val hasRemoteHost = cleaned.contains('@') &&
+            cleaned.substringAfter('@').isNotBlank() &&
+            cleaned.substringAfter('@').substringBefore(' ').isNotBlank()
+
+        if (hasRemoteHost) {
+            // Federated handle (@user@host) — server search doesn't do remote lookup,
+            // so resolve via the dedicated discover-remote endpoint instead.
+            searchFederated(cleaned)
+        } else {
+            searchLocal(cleaned)
+        }
+    }
+
+    private suspend fun searchFederated(query: String) {
+        when (val result = users.discoverRemote(query)) {
+            is ApiResult.Success -> {
+                val actor = result.data
+                val asUserDto = UserDto(
+                    id = null,
+                    username = actor.username,
+                    displayName = actor.displayName,
+                    avatarUrl = actor.avatarUrl,
+                    bio = actor.bioHtml ?: actor.bio,
+                    actorUri = actor.actorUri,
+                    domain = actor.domain,
+                    handle = actor.handle,
+                )
+                _ui.value = _ui.value.copy(loading = false, results = listOf(asUserDto))
+            }
+            is ApiResult.Error ->
+                _ui.value = _ui.value.copy(loading = false, error = result.message)
+        }
+    }
+
+    private suspend fun searchLocal(query: String) {
         when (val result = users.search(query)) {
             is ApiResult.Success -> _ui.value =
                 _ui.value.copy(loading = false, results = result.data.content)
@@ -101,6 +139,17 @@ class DiscoverViewModel(
             is ApiResult.Success -> _ui.value =
                 _ui.value.copy(loading = false, results = result.data.content)
             is ApiResult.Error -> _ui.value = _ui.value.copy(loading = false, error = result.message)
+        }
+    }
+
+    fun follow(userHandle: String) {
+        viewModelScope.launch {
+            _ui.value = _ui.value.copy(busyUsers = _ui.value.busyUsers + userHandle, error = null)
+            val result = users.follow(userHandle)
+            _ui.value = _ui.value.copy(
+                busyUsers = _ui.value.busyUsers - userHandle,
+                error = if (result is ApiResult.Error) result.message else null,
+            )
         }
     }
 

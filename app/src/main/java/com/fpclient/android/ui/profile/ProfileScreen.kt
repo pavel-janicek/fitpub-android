@@ -41,6 +41,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fpclient.android.AppContainer
 import com.fpclient.android.util.Format
 import com.fpclient.android.data.dto.ActivitySummaryDto
+import com.fpclient.android.data.dto.ActorDto
 import com.fpclient.android.data.dto.FollowStatusDto
 import com.fpclient.android.data.dto.HeatmapResponse
 import com.fpclient.android.data.dto.UserDto
@@ -53,6 +54,7 @@ import com.fpclient.android.ui.components.ErrorState
 import com.fpclient.android.ui.components.LoadingIndicator
 import com.fpclient.android.ui.components.StatRow
 import com.fpclient.android.ui.components.UserAvatar
+import com.fpclient.android.util.ActorHandle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -74,16 +76,63 @@ class ProfileViewModel(
         val busy: Boolean = false,
         /** True when the server refused the profile body because it is followers-only. */
         val isPrivateProfile: Boolean = false,
+        /** True when the requested handle belongs to a federated (remote) user discovered via WebFinger. */
+        val isRemoteProfile: Boolean = false,
         /** Username this screen was opened for; kept so actions work even without a profile body. */
         val username: String? = null,
+        /** Lightweight actor profile for remote users (populated instead of [user] for federated handles). */
+        val actor: ActorDto? = null,
     )
 
     private val _ui = MutableStateFlow(UiState())
     val ui: StateFlow<UiState> = _ui.asStateFlow()
 
     fun load(username: String) {
+        val cleaned = username.trim()
+        // Federated handle (@user@host where host is NOT our instance)? The local profile
+        // endpoint only resolves local usernames — remote actors must be discovered via
+        // the dedicated discover-remote endpoint.
+        val serverDomain = ActorHandle.hostOf(appViewModel.uiState.value.serverUrl)
+        val handleHost = if (ActorHandle.isFullHandle(cleaned)) {
+            cleaned.removePrefix("@").substringAfter('@').takeIf { it.isNotBlank() }?.let {
+                ActorHandle.hostOf("https://$it")
+            }
+        } else null
+        val isRemote = handleHost != null && !handleHost.equals(serverDomain, ignoreCase = true)
+
+        if (isRemote) {
+            loadRemoteProfile(cleaned)
+            return
+        }
+
+        val localName = if (ActorHandle.isFullHandle(cleaned)) ActorHandle.localPart(cleaned) else cleaned.removePrefix("@")
+        loadLocalProfile(localName.ifBlank { cleaned })
+    }
+
+    /** Loads a remote (federated) actor discovered via WebFinger — no activities/heatmap available. */
+    private fun loadRemoteProfile(handle: String) {
         viewModelScope.launch {
-            _ui.value = _ui.value.copy(loading = true, error = null, isPrivateProfile = false, username = username.ifBlank { null })
+            _ui.value = _ui.value.copy(
+                loading = true, error = null, isPrivateProfile = false,
+                isRemoteProfile = true, user = null, actor = null,
+                username = handle, activitiesList = emptyList(), heatmap = null,
+            )
+            when (val r = users.discoverRemote(handle)) {
+                is ApiResult.Success ->
+                    _ui.value = _ui.value.copy(loading = false, actor = r.data)
+                is ApiResult.Error ->
+                    _ui.value = _ui.value.copy(loading = false, error = r.message)
+            }
+        }
+    }
+
+    /** Loads a local user's full profile (activities, heatmap, follow status). */
+    private fun loadLocalProfile(username: String) {
+        viewModelScope.launch {
+            _ui.value = _ui.value.copy(
+                loading = true, error = null, isPrivateProfile = false, isRemoteProfile = false,
+                username = username.ifBlank { null },
+            )
             var user: UserDto? = null
             var error: String? = null
             when (val r = users.profile(username)) {
@@ -130,15 +179,21 @@ class ProfileViewModel(
         // On locked (private) profiles there is no user object — fall back to the
         // username the screen was opened for, otherwise request-to-follow breaks.
         val target = (_ui.value.user?.username ?: _ui.value.username)?.takeIf { it.isNotBlank() && it != "me" } ?: return
+        val isRemote = _ui.value.isRemoteProfile
+        // For remote profiles, follow status comes from the discover-remote endpoint as a string.
+        val remoteFollowStatus = _ui.value.actor?.followStatus
         val status = _ui.value.followStatus
         viewModelScope.launch {
             _ui.value = _ui.value.copy(busy = true, error = null)
-            // No cached follow status (e.g. it failed to load): try to follow directly.
-            // A pending request counts as "engaged" too — acting again cancels it.
-            val result = if (status == null || !(status.isFollowing || status.canUnfollow || status.isFollowRequestPending)) {
-                users.follow(target)
+            val isFollowing = if (isRemote) {
+                remoteFollowStatus == "ACCEPTED" || remoteFollowStatus == "PENDING"
             } else {
+                status == null || !(status.isFollowing || status.canUnfollow || status.isFollowRequestPending)
+            }
+            val result = if (isFollowing) {
                 users.unfollow(target)
+            } else {
+                users.follow(target)
             }
             // busy MUST be cleared before/when reloading — previously it stayed true on
             // success, which permanently disabled ("grayed out") the follow button.
@@ -197,10 +252,18 @@ fun ProfileScreen(
     val unitSystem by appViewModel.unitSystem.collectAsState()
     val serverUrl = sessionState.serverUrl
     val isMe = username == sessionState.username || username == "me"
+    val remoteActor = ui.actor
 
     val content: @Composable (Modifier) -> Unit = { modifier ->
         when {
-            ui.loading && ui.user == null -> LoadingIndicator(modifier)
+            ui.loading && ui.user == null && remoteActor == null -> LoadingIndicator(modifier)
+            ui.isRemoteProfile && remoteActor != null -> RemoteProfileBody(
+                actor = remoteActor,
+                error = ui.error,
+                busy = ui.busy,
+                status = ui.followStatus,
+                onToggleFollow = { vm.toggleFollow() },
+            )
             ui.user == null && ui.isPrivateProfile -> LockedProfileBody(
                 username = ui.username ?: username,
                 error = ui.error,
@@ -238,7 +301,10 @@ fun ProfileScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(ui.user?.displayName ?: "@$username") },
+                    title = {
+                        val title = remoteActor?.fullHandle ?: ui.user?.displayName
+                        Text(title ?: username.trim().let { if (it.startsWith("@")) it else "@$it" })
+                    },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -387,9 +453,78 @@ private fun ProfileBody(
 }
 
 /**
- * Shown instead of the full profile when the target account is private and we
- * are not (yet) approved followers — mirrors the web app's "request to follow" flow.
+ * Minimal profile card for a federated (remote) actor discovered via WebFinger. These
+ * accounts don't have a local profile page — no activities or heatmap — so we show the
+ * handle, display name, avatar and bio returned by the discover-remote endpoint.
  */
+@Composable
+private fun RemoteProfileBody(
+    actor: ActorDto,
+    error: String?,
+    busy: Boolean,
+    status: FollowStatusDto?,
+    onToggleFollow: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top,
+    ) {
+        UserAvatar(
+            avatarUrl = actor.avatarUrl,
+            displayName = actor.displayName ?: actor.username,
+            serverUrl = actor.domain?.let { "https://$it" } ?: "",
+            size = 88,
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            actor.displayName ?: actor.username ?: actor.fullHandle,
+            style = MaterialTheme.typography.titleLarge,
+        )
+        Text(
+            actor.fullHandle,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (!actor.bioHtml.isNullOrBlank()) {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                Format.decodeHtml(actor.bioHtml) ?: actor.bio ?: "",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        if (!actor.domain.isNullOrBlank()) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "From ${actor.domain}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.height(16.dp))
+        val following = status?.isFollowing == true || status?.canUnfollow == true
+        Button(
+            onClick = onToggleFollow,
+            enabled = !busy,
+        ) {
+            Text(
+                when {
+                    status?.isFollowRequestPending == true -> "Request sent"
+                    following -> "Unfollow"
+                    else -> "Request to follow"
+                },
+            )
+        }
+        if (error != null) {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+    }
+}
 @Composable
 private fun LockedProfileBody(
     username: String,

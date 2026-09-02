@@ -25,7 +25,7 @@ surface is defined in `app/src/main/java/com/fpclient/android/data/network/FitPu
 ### 1.3.4 — web routing, cookie auth, and CSRF (breaking server changes)
 
 The FitPub server (PRs #469, #470, #474) reworked its HTTP API; the app was realigned to match.
-The endpoint contract used to be unchanged since FitPub 1.2.1; newer responses also carry
+The endpoint contract has remained unchanged since FitPub 1.2.1; newer responses also carry
 additive fields (`boostsCount`, `titleTruncated`, …) that the client tolerates (unknown JSON
 keys are ignored) — that additive policy is unchanged.
 
@@ -37,17 +37,12 @@ keys are ignored) — that additive policy is unchanged.
   `GET /api/activities/{id}/track` endpoint was removed; the activity-detail map now reads
   its polyline from the `simplifiedTrack` geometry embedded in the activity DTO. Route
   downloads use `GET /api/web/activities/{id}/route?format=fit|gpx|tcx`.
-* **Authentication is cookie-based, not bearer.** Since FitPub 1.3 the JWT is delivered only
-  as an `Set-Cookie: JWT_TOKEN=…` (HttpOnly) header on login / registration-verify /
-  password-reset and is read on every request from that cookie. `Authorization: Bearer
-  <token>` is no longer accepted. The app persists the JWT and sends it back as a `Cookie`
-  header.
+* **Authentication is cookie-based, not bearer-token based.** Since FitPub 1.3 the JWT is delivered only as an `Set-Cookie: JWT_TOKEN=…` (HttpOnly) header on login / registration-verify / password-reset; the app reads it from that response and sends it back as a `Cookie` header on every subsequent request. `Authorization: Bearer <token>` is no longer accepted.
 * **CSRF protection enforced.** Mutating requests (POST/PUT/PATCH/DELETE) require an
   `X-XSRF-TOKEN` header matching the `XSRF-TOKEN` cookie. The app primes the cookie with an
   anonymous `GET /api/web/auth/registration-status`, captures fresh tokens from each response,
   and echoes both on every mutating call.
-* **Debug endpoints removed:** obsolete `/api/**` debug/admin endpoints were dropped; the app
-  never used them.
+* **Debug endpoints removed:** obsolete `/api/**` debug/admin endpoints were dropped; the app never used them.
 
 ### Pre-1.3.4 behavior the app already adapted to
 
@@ -65,9 +60,7 @@ as implemented by the `social.fitpub:fitpub` server artifact.
 - **Auth** — connect to any FitPub instance, register (with email verification code),
   log in, reset password. The instance is shown on the login screen and can be
   changed at any time.
-- **Guest mode** — skip account setup entirely ("Skip for now") or browse without
-  signing in from the login screen; guests get the public timeline of the selected
-  instance and can sign up later from Settings.
+- **Guest mode** — skip account setup entirely ("Skip for now") or browse without signing in from the login screen; guests see the public timeline of the selected instance and can sign up later from Settings.
 - **Timelines** — federated / public / personal feeds of activities.
 - **Discover** — search and browse athletes across the instance, follow / unfollow.
 - **Activities** — upload FIT / GPX / TCX files or create entries manually; view
@@ -130,3 +123,18 @@ agent in iterative sessions (see `PLAN.md` for the iteration plan).
 **4. Confirm installation** and launch the app.
 
 **⚠️ Install at your own risk.** No guarantees, no warranties, no crying if your phone decides to rebel.
+
+## 📥 Installation (Google Play Store)
+At this time, the application is in closed beta testing on Google Play Store. Here is how to obtain the app using the store:
+
+1. Become member of [FP Client Google Group](https://groups.google.com/g/fp-client)
+2. Click on the web [to become a tester](https://play.google.com/apps/testing/com.fpclient.android)
+3. Download the app from [Play Store](https://play.google.com/store/apps/details?id=com.fpclient.android)
+4. Use the app actively; it will help me make the app officially available to all Google Play users
+
+## And what about other stores?
+To be honest, I tried publishing the app to the [F-Droid](https://f-droid.org) app store.
+
+... And I keep failing and failing.
+
+So, [I need your help](https://www.pavelchcepsat.cz/2026/09/02/a-cry-for-help-with-f-droid/)

@@ -1,5 +1,6 @@
 package com.fpclient.android.data.network
 
+import com.fpclient.android.data.dto.ActorDto
 import com.fpclient.android.data.dto.ActivityDto
 import com.fpclient.android.data.dto.ActivityUpdateRequest
 import com.fpclient.android.data.dto.AuthResponse
@@ -222,6 +223,9 @@ interface FitPubApi {
 
     @GET("api/web/users/me/email-change")
     suspend fun emailChangeStatus(): Response<EmailChangeStatusResponse>
+
+    @GET("api/web/users/discover-remote")
+    suspend fun discoverRemote(@Query("handle") handle: String): Response<ActorDto>
 
     @GET("api/web/users/{username}")
     suspend fun userProfile(@Path("username") username: String): Response<UserDto>

@@ -101,7 +101,25 @@ fun ActivityDetailScreen(
     ) { padding ->
         when {
             ui.loading -> LoadingIndicator(Modifier.padding(padding))
-            ui.error != null -> ErrorState(message = ui.error, onRetry = { vm.load(activityId) }, modifier = Modifier.padding(padding))
+            ui.error != null -> {
+                // Federated (remote) activities return 404 — the server only exposes
+                // local activities via GET /api/activities/{id}. Show a clear explanation
+                // and a Back button instead of a useless Retry.
+                if (ui.errorStatusCode == 404 && ui.activity == null) {
+                    ErrorState(
+                        message = "Current API compatibility does not allow showing this activity.\nFederated activities from other instances cannot be loaded.",
+                        onRetry = onBack,
+                        buttonLabel = "Back",
+                        modifier = Modifier.padding(padding),
+                    )
+                } else {
+                    ErrorState(
+                        message = ui.error,
+                        onRetry = { vm.load(activityId) },
+                        modifier = Modifier.padding(padding),
+                    )
+                }
+            }
             else -> DetailBody(
                 activityId = activityId,
                 viewModel = vm,

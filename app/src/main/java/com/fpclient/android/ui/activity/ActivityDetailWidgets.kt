@@ -25,6 +25,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import com.fpclient.android.data.dto.ReactionPalette
 import com.fpclient.android.util.Format
@@ -49,7 +50,11 @@ fun ReactionRow(activityId: String, viewModel: ActivityDetailViewModel, ui: Acti
 }
 
 @Composable
-fun CommentComposer(activityId: String, viewModel: ActivityDetailViewModel) {
+fun CommentComposer(
+    activityId: String,
+    viewModel: ActivityDetailViewModel,
+    onFocused: () -> Unit = {},
+) {
     var commentText by rememberSaveable { mutableStateOf("") }
     val comments = viewModel.ui.collectAsState().value.comments
     Column(modifier = Modifier.padding(16.dp)) {
@@ -71,7 +76,10 @@ fun CommentComposer(activityId: String, viewModel: ActivityDetailViewModel) {
                     Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
                 }
             },
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+                .onFocusChanged { if (it.isFocused) onFocused() },
         )
         Spacer(Modifier.height(8.dp))
         comments.forEach { c ->

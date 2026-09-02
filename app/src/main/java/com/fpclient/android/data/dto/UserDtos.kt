@@ -33,7 +33,45 @@ data class UserDto(
     val followingCount: Long? = null,
     val activityCount: Long? = null,
     val isFollowing: Boolean? = null,
-)
+    // Federation-aware fields (present on follower/following lists and remote search hits).
+    // The ActivityPub actor URI, e.g. https://fitpub.example/users/alice or
+    // https://mastodon.social/users/bob.
+    val actorUri: String? = null,
+    /** The actor's server domain, e.g. `fitpub.example` or `mastodon.social`. */
+    val domain: String? = null,
+    /** Full handle `username@domain`; null for local-only responses. */
+    val handle: String? = null,
+) {
+    /** Full `@username@host` handle so remote actors keep their home instance. */
+    val fullHandle: String
+        get() = com.fpclient.android.util.ActorHandle.full(username, actorUri, handle, domain) ?: "@${username.orEmpty()}"
+}
+
+/**
+ * Lightweight actor profile returned by the server's `GET /api/web/users/discover-remote`
+ * endpoint. Used when opening the profile of a federated (remote) user the server has
+ * only discovered via WebFinger — these accounts don't have the full [UserDto] fields
+ * (no activities/heatmap) but do carry enough to render a minimal profile card.
+ */
+@Serializable
+data class ActorDto(
+    val actorUri: String? = null,
+    val username: String? = null,
+    val domain: String? = null,
+    val handle: String? = null,
+    val displayName: String? = null,
+    val avatarUrl: String? = null,
+    val bio: String? = null,
+    val bioHtml: String? = null,
+    val local: Boolean = false,
+    val instanceType: String? = null,
+    /** Follow relationship status from the current viewer to this actor (from discover-remote). */
+    val followStatus: String? = null,
+) {
+    /** Full `@username@host` handle, falling back to the wire fields. */
+    val fullHandle: String
+        get() = com.fpclient.android.util.ActorHandle.full(username, actorUri, handle, domain) ?: "@${username.orEmpty()}"
+}
 
 @Serializable
 data class UserSearchResultDto(

@@ -7,15 +7,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -66,7 +69,9 @@ fun DiscoverTabContent(
                     UserRow(
                         user = user,
                         serverUrl = serverUrl,
-                        onClick = { user.username?.let(onOpenProfile) },
+                        onClick = { user.fullHandle.let(onOpenProfile) },
+                        onFollowToggle = { vm.follow(user.fullHandle) },
+                        followBusy = ui.busyUsers.contains(user.username),
                     )
                 }
             }
@@ -75,7 +80,13 @@ fun DiscoverTabContent(
 }
 
 @Composable
-private fun UserRow(user: UserDto, serverUrl: String, onClick: () -> Unit) {
+private fun UserRow(
+    user: UserDto,
+    serverUrl: String,
+    onClick: () -> Unit,
+    onFollowToggle: (() -> Unit)? = null,
+    followBusy: Boolean = false,
+) {
     Surface(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
@@ -89,17 +100,21 @@ private fun UserRow(user: UserDto, serverUrl: String, onClick: () -> Unit) {
                     style = MaterialTheme.typography.titleSmall,
                 )
                 Text(
-                    text = "@" + (user.username ?: ""),
+                    text = user.fullHandle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            val followers = user.followersCount ?: 0
-            Text(
-                text = "$followers followers",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (onFollowToggle != null) {
+                Spacer(Modifier.padding(start = 8.dp))
+                if (followBusy) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                } else {
+                    OutlinedButton(onClick = onFollowToggle) {
+                        Text("Request to follow")
+                    }
+                }
+            }
         }
     }
 }

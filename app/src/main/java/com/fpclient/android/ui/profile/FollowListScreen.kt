@@ -162,6 +162,8 @@ fun FollowListScreen(
                     items(ui.users.size) { index ->
                         val u = ui.users[index]
                         val busy = ui.busyUsers.contains(u.username)
+                        // Keep the full @username@host handle so remote actors remain reachable.
+                        val fullHandle = u.fullHandle
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -170,7 +172,7 @@ fun FollowListScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable(enabled = !u.username.isNullOrBlank()) { onOpenProfile(u.username!!) }
+                                    .clickable(enabled = fullHandle.isNotBlank()) { onOpenProfile(fullHandle) }
                                     .padding(horizontal = 14.dp, vertical = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
@@ -178,11 +180,11 @@ fun FollowListScreen(
                                 Spacer(Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        u.displayName ?: "@${u.username}",
+                                        u.displayName ?: fullHandle,
                                         style = MaterialTheme.typography.titleSmall,
                                         maxLines = 1,
                                     )
-                                    Text("@${u.username}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(fullHandle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 OutlinedButton(
                                     onClick = {

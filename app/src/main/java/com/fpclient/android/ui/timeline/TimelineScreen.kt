@@ -1,19 +1,18 @@
 package com.fpclient.android.ui.timeline
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,6 +20,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -56,6 +56,8 @@ class TimelineViewModel(
     data class UiState(
         val loading: Boolean = false,
         val loadingMore: Boolean = false,
+        /** True while a pull-to-refresh / top-bar refresh is re-fetching page 0. */
+        val isRefreshing: Boolean = false,
         val error: String? = null,
         val activities: List<TimelineActivityDto> = emptyList(),
         val hasMore: Boolean = true,
@@ -103,6 +105,7 @@ class TimelineViewModel(
             if (session.guest && _tab.value == TimelineTab.FEDERATED) {
                 _tab.value = TimelineTab.PUBLIC
             }
+            _ui.value = _ui.value.copy(isRefreshing = true)
             load()
         }
     }
@@ -115,10 +118,15 @@ class TimelineViewModel(
             when (val result = repository.load(current, page = 0, search = query)) {
                 is ApiResult.Success -> _ui.value = _ui.value.copy(
                     loading = false,
+                    isRefreshing = false,
                     activities = result.data,
                     hasMore = result.data.size >= PAGE_SIZE,
                 )
-                is ApiResult.Error -> _ui.value = _ui.value.copy(loading = false, error = result.message)
+                is ApiResult.Error -> _ui.value = _ui.value.copy(
+                    loading = false,
+                    isRefreshing = false,
+                    error = result.message,
+                )
             }
         }
     }
@@ -176,8 +184,13 @@ fun TimelineScreen(
             TopAppBar(
                 title = { Text("FP Client") },
                 actions = {
+                    // Show a spinner while a refresh is in flight so the button gives feedback.
                     IconButton(onClick = { vm.refresh() }) {
-                        Icon(Icons.Filled.Refresh, contentDescription = "Refresh")
+                        if (ui.isRefreshing) {
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        } else {
+                            Icon(Icons.Filled.Refresh, contentDescription = "Refresh")
+                        }
                     }
                 },
             )
@@ -196,17 +209,16 @@ fun TimelineScreen(
         },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            // Floating feed switches styled like the analytics tab row.
+            androidx.compose.material3.ScrollableTabRow(
+                selectedTabIndex = TimelineTab.entries.indexOfFirst { it == tab }.coerceAtLeast(0),
+                edgePadding = 12.dp,
             ) {
                 TimelineTab.entries.forEach { t ->
-                    FilterChip(
+                    androidx.compose.material3.Tab(
                         selected = tab == t,
                         onClick = { vm.setTab(t) },
-                        label = { Text(t.title) },
+                        text = { Text(t.title) },
                     )
                 }
             }
@@ -219,42 +231,48 @@ fun TimelineScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 4.dp),
             )
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                when {
-                    ui.loading && ui.activities.isEmpty() -> {
-                        item { LoadingIndicator() }
-                    }
-                    ui.error != null && ui.activities.isEmpty() -> {
-                        item { ErrorState(message = ui.error, onRetry = { vm.refresh() }) }
-                    }
-                    ui.activities.isEmpty() -> {
-                        item {
-                            EmptyState(
-                                title = "No activities yet",
-                                body = "When you or the people you follow record workouts they will appear here.",
-                            )
+            androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+                isRefreshing = ui.isRefreshing,
+                onRefresh = vm::refresh,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    when {
+                        ui.loading && ui.activities.isEmpty() -> {
+                            item { LoadingIndicator() }
                         }
-                    }
-                    else -> {
-                        items(ui.activities, key = { it.id }) { activity ->
-                            ActivityCard(
-                                activity = activity,
-                                serverUrl = serverUrl,
-                                unitSystem = unitSystem,
-                                onClick = { onOpenActivity(activity.id) },
-                                onAuthorClick = { activity.username?.let(onOpenProfile) },
-                            )
+                        ui.error != null && ui.activities.isEmpty() -> {
+                            item { ErrorState(message = ui.error, onRetry = { vm.refresh() }) }
                         }
-                        if (ui.hasMore) {
-                            item(key = "load-more") {
-                                Button(
-                                    onClick = { vm.loadMore() },
-                                    enabled = !ui.loadingMore,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 12.dp, vertical = 4.dp),
-                                ) {
-                                    Text(if (ui.loadingMore) "Loading…" else "Load more")
+                        ui.activities.isEmpty() -> {
+                            item {
+                                EmptyState(
+                                    title = "No activities yet",
+                                    body = "When you or the people you follow record workouts they will appear here.",
+                                )
+                            }
+                        }
+                        else -> {
+                            items(ui.activities, key = { it.id }) { activity ->
+                                ActivityCard(
+                                    activity = activity,
+                                    serverUrl = serverUrl,
+                                    unitSystem = unitSystem,
+                                    onClick = { onOpenActivity(activity.id) },
+                                    onAuthorClick = { handle -> onOpenProfile(handle) },
+                                )
+                            }
+                            if (ui.hasMore) {
+                                item(key = "load-more") {
+                                    Button(
+                                        onClick = { vm.loadMore() },
+                                        enabled = !ui.loadingMore,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 12.dp, vertical = 4.dp),
+                                    ) {
+                                        Text(if (ui.loadingMore) "Loading…" else "Load more")
+                                    }
                                 }
                             }
                         }
