@@ -11,6 +11,7 @@ import com.fpclient.android.data.dto.VerifyRegistrationRequest
 import com.fpclient.android.data.network.ApiResult
 import com.fpclient.android.data.network.ErrorMessages
 import com.fpclient.android.data.network.FitPubApi
+import com.fpclient.android.data.network.jwtCookieValue
 import com.fpclient.android.data.session.SessionStore
 
 open class AuthRepository(
@@ -18,23 +19,26 @@ open class AuthRepository(
     private val sessionStore: SessionStore,
 ) {
 
-    open suspend fun login(usernameOrEmail: String, password: String): ApiResult<AuthResponse> {
+        open suspend fun login(usernameOrEmail: String, password: String): ApiResult<AuthResponse> {
         return try {
             val response = api.login(LoginRequest(usernameOrEmail = usernameOrEmail, password = password))
             if (!response.isSuccessful) {
                 return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
             }
             val body = response.body()
-            if (body?.token == null) {
-                return ApiResult.Error("Server returned an empty token")
+            // Since FitPub 1.3 the JWT is delivered as an HttpOnly cookie, not in the body.
+            val jwt = response.jwtCookieValue()
+            if (jwt.isNullOrBlank()) {
+                return ApiResult.Error("Server did not set an auth cookie")
             }
+            val safeBody = body ?: AuthResponse()
             sessionStore.saveAuth(
-                token = body.token,
-                username = body.username.orEmpty(),
-                displayName = body.displayName,
-                email = body.email,
+                token = jwt,
+                username = safeBody.username.orEmpty(),
+                displayName = safeBody.displayName,
+                email = safeBody.email,
             )
-            ApiResult.Success(body)
+            ApiResult.Success(safeBody)
         } catch (e: Exception) {
             ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
@@ -51,14 +55,16 @@ open class AuthRepository(
                 return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
             }
             val body = response.body()
-            if (body?.token == null) return ApiResult.Error("Verification succeeded but no token returned")
+            val jwt = response.jwtCookieValue()
+            if (jwt.isNullOrBlank()) return ApiResult.Error("Verification succeeded but no auth cookie was set")
+            val safeBody = body ?: AuthResponse()
             sessionStore.saveAuth(
-                token = body.token,
-                username = body.username.orEmpty(),
-                displayName = body.displayName,
-                email = body.email,
+                token = jwt,
+                username = safeBody.username.orEmpty(),
+                displayName = safeBody.displayName,
+                email = safeBody.email,
             )
-            ApiResult.Success(body)
+            ApiResult.Success(safeBody)
         } catch (e: Exception) {
             ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }
@@ -87,14 +93,16 @@ open class AuthRepository(
                 return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
             }
             val body = response.body()
-            if (body?.token == null) return ApiResult.Error("Token missing in response")
+            val jwt = response.jwtCookieValue()
+            if (jwt.isNullOrBlank()) return ApiResult.Error("Token missing in response")
+            val safeBody = body ?: AuthResponse()
             sessionStore.saveAuth(
-                token = body.token,
-                username = body.username.orEmpty(),
-                displayName = body.displayName,
-                email = body.email,
+                token = jwt,
+                username = safeBody.username.orEmpty(),
+                displayName = safeBody.displayName,
+                email = safeBody.email,
             )
-            ApiResult.Success(body)
+            ApiResult.Success(safeBody)
         } catch (e: Exception) {
             ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }

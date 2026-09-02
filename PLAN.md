@@ -1,7 +1,7 @@
 # FitPub Android — Project Roadmap
 
-Assessment date: 2026-08-25 · Last updated: Release 1.3.2
-Current app version: **`1.3.2`** (`versionCode` 26)
+Assessment date: 2026-08-25 · Last updated: Release 1.3.4
+Current app version: **`1.3.4`** (`versionCode` 27)
 
 ## Current state
 
@@ -96,6 +96,7 @@ Progress ledger (kept up to date per iteration):
 | **1.3** | Feature — Settings gains an **About** screen: app version (from `BuildConfig`, cannot drift), contact via the FitPub Matrix room ("FitPub Users"), bug-reporting guidance via GitHub Issues (incl. "please include the app version"), info for instance administrators about the app's `FP-Client/<version>` HTTP User-Agent, project link and OpenStreetMap attribution. Added `VERSION_CHECKLIST.md` to verify version propagation on every release | ✅ done |
 | **1.3.1** | F-Droid compatibility prep: AGPL-3.0 `LICENSE` added (was missing — hard F-Droid requirement), release binaries untracked from git + `app/release/` and `*.keystore` gitignored (source repo must be binary-free), release signing config made conditional so unsigned release builds succeed for the F-Droid buildserver (which re-signs with its own key), fastlane metadata (`fastlane/metadata/android/en-US/`: title, short/full description, changelogs) for F-Droid auto-import. Dependency audit clean: all libs are Apache-2.0/MIT from Maven Central/Google, no proprietary SDKs/services | ✅ done |
 | **1.3.2** | F-Droid submission — reproducibility fix: the reference binary previously pinned to the pre-merge `Release-1.3` commit failed F-Droid's byte-compare (only `META-INF/version-control-info.textproto` differed). Cut as a fresh release built from the merged `main` commit so the uploaded `app-release.apk` matches the F-Droid buildserver output exactly. No user-facing changes. | ✅ done |
+| **1.3.4** | **API compatibility update for FitPub `main` (post 1.3.2):** web/consumer endpoints migrated under `/api/web/` (auth, timeline, activities, likes/comments, users, analytics, notifications, privacy-zones, heatmap, batch-import, push `vapid-key`); the session JWT is now delivered and read only as the `JWT_TOKEN` HttpOnly cookie — `Authorization: Bearer <token>` is no longer accepted, so the app now authenticates via cookie + CSRF instead of a bearer header; CSRF protection now enforced on every mutating call (`X-XSRF-TOKEN` header + `XSRF-TOKEN` cookie, primed via a registration-status GET). Removed the deprecated `GET /api/activities/{id}/track` endpoint; the activity-detail map now sources its polyline segments from the `simplifiedTrack` field embedded in `ActivityDTO`. Published federation routes (`GET /api/activities/{id}`, `GET /api/activities/{id}/image`) are preserved. Bump versionCode 27 / versionName 1.3.4; `FP-Client/1.3.4` user-agent. | ✅ done |
 | **2.0** | + Iteration 7 — record workouts on-device and share | ⬜ |
 | **3.0** | + Iteration 8 — FitPub Wear companion app | ⬜ |
 

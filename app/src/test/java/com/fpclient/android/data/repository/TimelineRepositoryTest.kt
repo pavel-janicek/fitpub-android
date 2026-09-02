@@ -44,7 +44,7 @@ class TimelineRepositoryTest {
         val request = server.takeRequest()
 
         assertEquals(ApiResult.Success(listOf(com.fpclient.android.data.dto.TimelineActivityDto(id = "a1", title = "Morning run"))), result)
-        assertEquals("/api/timeline/public?page=2&size=20&search=run", request.path)
+        assertEquals("/api/web/timeline/public?page=2&size=20&search=run", request.path)
     }
 
     @Test

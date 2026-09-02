@@ -36,9 +36,9 @@ data class Session(
 private val Context.fitPubDataStore: DataStore<Preferences> by preferencesDataStore(name = "fitpub_session")
 
 /**
- * Persists the currently selected FitPub instance and (if logged in) the JWT bearer
- * token plus cached identity fields. Non-sensitive data is stored in DataStore,
- * while the auth token is stored in EncryptedSharedPreferences.
+  * Persists the currently selected FitPub instance and (if logged in) the session JWT plus
+ * cached identity fields. Non-sensitive data is stored in DataStore, while the auth token
+ * (the `JWT_TOKEN` cookie value the server sets on login) is stored in EncryptedSharedPreferences.
  */
 class SessionStore(private val context: Context) {
 

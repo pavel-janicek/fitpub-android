@@ -32,7 +32,6 @@ import com.fpclient.android.data.dto.ReactionRequest
 import com.fpclient.android.data.dto.RegisterRequest
 import com.fpclient.android.data.dto.RegistrationStatusResponse
 import com.fpclient.android.data.dto.ResendRegistrationCodeRequest
-import com.fpclient.android.data.dto.TrackFeatureCollectionDto
 import com.fpclient.android.data.dto.UnreadCountDto
 import com.fpclient.android.data.dto.UserDto
 import com.fpclient.android.data.dto.UserSearchResultDto
@@ -67,42 +66,42 @@ interface FitPubApi {
     // Authentication & registration
     // ------------------------------------------------------------------
 
-    @POST("api/auth/register/start")
+    @POST("api/web/auth/register/start")
     suspend fun startRegistration(@Body request: RegisterRequest): Response<MessageResponse>
 
-    @POST("api/auth/register/verify")
+    @POST("api/web/auth/register/verify")
     suspend fun verifyRegistration(@Body request: VerifyRegistrationRequest): Response<AuthResponse>
 
-    @POST("api/auth/register/resend")
+    @POST("api/web/auth/register/resend")
     suspend fun resendRegistrationCode(@Body request: ResendRegistrationCodeRequest): Response<MessageResponse>
 
-    @GET("api/auth/registration-status")
+    @GET("api/web/auth/registration-status")
     suspend fun registrationStatus(): Response<RegistrationStatusResponse>
 
-    @POST("api/auth/login")
+    @POST("api/web/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
 
-    @POST("api/auth/logout")
+    @POST("api/web/auth/logout")
     suspend fun logout(): Response<Unit>
 
-    @POST("api/auth/password-reset/request")
+    @POST("api/web/auth/password-reset/request")
     suspend fun requestPasswordReset(@Body request: PasswordResetRequest): Response<MessageResponse>
 
-    @POST("api/auth/password-reset/confirm")
+    @POST("api/web/auth/password-reset/confirm")
     suspend fun confirmPasswordReset(@Body request: PasswordResetConfirmRequest): Response<AuthResponse>
 
     // ------------------------------------------------------------------
     // Timelines
     // ------------------------------------------------------------------
 
-    @GET("api/timeline/federated")
+    @GET("api/web/timeline/federated")
     suspend fun federatedTimeline(
         @Query("page") page: Int,
         @Query("size") size: Int,
         @Query("search") search: String? = null,
     ): Response<PageEnvelopeTimelineDto>
 
-    @GET("api/timeline/public")
+    @GET("api/web/timeline/public")
     suspend fun publicTimeline(
         @Query("page") page: Int,
         @Query("size") size: Int,
@@ -110,7 +109,7 @@ interface FitPubApi {
         @Query("hashtag") hashtag: String? = null,
     ): Response<PageEnvelopeTimelineDto>
 
-    @GET("api/timeline/user")
+    @GET("api/web/timeline/user")
     suspend fun userTimeline(
         @Query("page") page: Int,
         @Query("size") size: Int,
@@ -121,7 +120,7 @@ interface FitPubApi {
     // ------------------------------------------------------------------
 
     @Multipart
-    @POST("api/activities/upload")
+    @POST("api/web/activities/upload")
     suspend fun uploadActivity(
         @Part file: MultipartBody.Part,
         @Part("title") title: RequestBody?,
@@ -129,62 +128,61 @@ interface FitPubApi {
         @Part("visibility") visibility: RequestBody?,
     ): Response<ActivityDto>
 
-    @POST("api/activities/manual")
+    @POST("api/web/activities/manual")
     suspend fun createManualActivity(@Body request: ManualActivityRequest): Response<ActivityDto>
 
+    // Published route — kept under /api for federation peers (do not move under /api/web).
     @GET("api/activities/{id}")
     suspend fun getActivity(@Path("id") id: String): Response<ActivityDto>
 
-    @PUT("api/activities/{id}")
+    @PUT("api/web/activities/{id}")
     suspend fun updateActivity(@Path("id") id: String, @Body request: ActivityUpdateRequest): Response<ActivityDto>
 
-    @DELETE("api/activities/{id}")
+    @DELETE("api/web/activities/{id}")
     suspend fun deleteActivity(@Path("id") id: String): Response<Unit>
 
-    @GET("api/activities/user/{username}")
+    @GET("api/web/activities/user/{username}")
     suspend fun userActivities(
         @Path("username") username: String,
         @Query("page") page: Int,
         @Query("size") size: Int,
     ): Response<PageEnvelopeActivitySummaryDto>
 
-    @GET("api/activities/{id}/track")
-    suspend fun activityTrack(@Path("id") id: String): Response<TrackFeatureCollectionDto>
-
+    // Published route — kept under /api for federation peers (do not move under /api/web).
     @GET("api/activities/{id}/image")
     suspend fun activityImage(@Path("id") id: String): Response<ResponseBody>
 
-    @GET("api/activities/{id}/route")
+    @GET("api/web/activities/{id}/route")
     @Streaming
-    suspend fun activityRoute(@Path("id") id: String): Response<ResponseBody>
+    suspend fun activityRoute(@Path("id") id: String, @Query("format") format: String = "gpx"): Response<ResponseBody>
 
-    @GET("api/locations/suggestions")
+    @GET("api/web/locations/suggestions")
     suspend fun locationSuggestions(@Query("q") query: String): Response<List<LocationSuggestionDto>>
 
     // ------------------------------------------------------------------
     // Likes / reactions & comments
     // ------------------------------------------------------------------
 
-    @GET("api/activities/{activityId}/likes")
+    @GET("api/web/activities/{activityId}/likes")
     suspend fun likes(@Path("activityId") activityId: String): Response<List<LikeDto>>
 
-    @POST("api/activities/{activityId}/likes")
+    @POST("api/web/activities/{activityId}/likes")
     suspend fun react(@Path("activityId") activityId: String, @Body body: ReactionRequest): Response<LikeDto>
 
-    @DELETE("api/activities/{activityId}/likes")
+    @DELETE("api/web/activities/{activityId}/likes")
     suspend fun unreact(@Path("activityId") activityId: String): Response<Unit>
 
-    @GET("api/activities/{activityId}/comments")
+    @GET("api/web/activities/{activityId}/comments")
     suspend fun comments(
         @Path("activityId") activityId: String,
         @Query("page") page: Int,
         @Query("size") size: Int,
     ): Response<PageEnvelopeCommentDto>
 
-    @POST("api/activities/{activityId}/comments")
+    @POST("api/web/activities/{activityId}/comments")
     suspend fun addComment(@Path("activityId") activityId: String, @Body body: CommentCreateRequest): Response<CommentDto>
 
-    @DELETE("api/activities/{activityId}/comments/{commentId}")
+    @DELETE("api/web/activities/{activityId}/comments/{commentId}")
     suspend fun deleteComment(
         @Path("activityId") activityId: String,
         @Path("commentId") commentId: String,
@@ -193,42 +191,42 @@ interface FitPubApi {
     // Users / profiles
     // ------------------------------------------------------------------
 
-    @GET("api/users/me")
+    @GET("api/web/users/me")
     suspend fun me(): Response<UserDto>
 
-    @PUT("api/users/me")
+    @PUT("api/web/users/me")
     suspend fun updateMe(@Body request: UserUpdateRequest): Response<UserDto>
 
-    @PUT("api/users/me/password")
+    @PUT("api/web/users/me/password")
     suspend fun changePassword(@Body request: ChangePasswordRequest): Response<MessageResponse>
 
-    @GET("api/users/timezones")
+    @GET("api/web/users/timezones")
     suspend fun timezones(): Response<List<String>>
 
     @Multipart
-    @POST("api/users/me/avatar")
+    @POST("api/web/users/me/avatar")
     suspend fun uploadAvatar(@Part file: MultipartBody.Part): Response<UserDto>
 
-    @DELETE("api/users/me/avatar")
+    @DELETE("api/web/users/me/avatar")
     suspend fun deleteAvatar(): Response<Unit>
 
     @Multipart
-    @POST("api/users/me/profile-header")
+    @POST("api/web/users/me/profile-header")
     suspend fun uploadProfileHeader(@Part file: MultipartBody.Part): Response<UserDto>
 
-    @DELETE("api/users/me/profile-header")
+    @DELETE("api/web/users/me/profile-header")
     suspend fun deleteProfileHeader(): Response<Unit>
 
-    @DELETE("api/users/me")
+    @DELETE("api/web/users/me")
     suspend fun deleteAccount(): Response<Unit>
 
-    @GET("api/users/me/email-change")
+    @GET("api/web/users/me/email-change")
     suspend fun emailChangeStatus(): Response<EmailChangeStatusResponse>
 
-    @GET("api/users/{username}")
+    @GET("api/web/users/{username}")
     suspend fun userProfile(@Path("username") username: String): Response<UserDto>
 
-    @GET("api/users/search")
+    @GET("api/web/users/search")
     suspend fun searchUsers(
         @Query("q") query: String,
         @Query("page") page: Int = 0,
@@ -236,125 +234,125 @@ interface FitPubApi {
         @Query("includeRemote") includeRemote: Boolean = false,
     ): Response<UserSearchResultDto>
 
-    @GET("api/users/browse")
+    @GET("api/web/users/browse")
     suspend fun browseUsers(
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 20,
     ): Response<UserSearchResultDto>
 
-    @GET("api/users/{username}/followers")
+    @GET("api/web/users/{username}/followers")
     suspend fun followers(
         @Path("username") username: String,
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 50,
     ): Response<List<UserDto>>
 
-    @GET("api/users/{username}/following")
+    @GET("api/web/users/{username}/following")
     suspend fun following(
         @Path("username") username: String,
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 50,
     ): Response<List<UserDto>>
 
-    @GET("api/users/{username}/follow-status")
+    @GET("api/web/users/{username}/follow-status")
     suspend fun followStatus(@Path("username") username: String): Response<FollowStatusDto>
 
-    @POST("api/users/{username}/follow")
+    @POST("api/web/users/{username}/follow")
     suspend fun follow(@Path("username") username: String): Response<FollowResultDto>
 
-    @DELETE("api/users/{username}/follow")
+    @DELETE("api/web/users/{username}/follow")
     suspend fun unfollow(@Path("username") username: String): Response<Unit>
 
-            @POST("api/users/{username}/follow-request/accept")
+            @POST("api/web/users/{username}/follow-request/accept")
     suspend fun acceptFollowRequest(@Path("username") username: String): Response<Unit>
 
-    @POST("api/users/{username}/follow-request/reject")
+    @POST("api/web/users/{username}/follow-request/reject")
     suspend fun rejectFollowRequest(@Path("username") username: String): Response<Unit>
 
 
-    @GET("api/analytics/dashboard")
+    @GET("api/web/analytics/dashboard")
     suspend fun analyticsDashboard(): Response<DashboardDto>
 
-    @GET("api/analytics/personal-records")
+    @GET("api/web/analytics/personal-records")
     suspend fun personalRecords(
         @Query("activityType") activityType: String? = null,
         @Query("recordType") recordType: String? = null,
     ): Response<List<com.fpclient.android.data.dto.PersonalRecordDto>>
 
-    @GET("api/analytics/achievements")
+    @GET("api/web/analytics/achievements")
     suspend fun achievements(): Response<List<com.fpclient.android.data.dto.AchievementDto>>
 
-    @GET("api/analytics/training-load")
+    @GET("api/web/analytics/training-load")
     suspend fun trainingLoad(
         @Query("days") days: Int = 90,
     ): Response<List<com.fpclient.android.data.dto.TrainingLoadDto>>
 
-    @GET("api/analytics/form-status")
+    @GET("api/web/analytics/form-status")
     suspend fun formStatus(): Response<com.fpclient.android.data.dto.FormStatusDto>
 
-        @GET("api/analytics/summaries/weekly")
+        @GET("api/web/analytics/summaries/weekly")
     suspend fun weeklySummaries(
         @Query("weeks") weeks: Int = 12,
     ): Response<List<com.fpclient.android.data.dto.ActivitySummaryPeriodDto>>
 
-    @GET("api/analytics/summaries/monthly")
+    @GET("api/web/analytics/summaries/monthly")
     suspend fun monthlySummaries(@Query("months") months: Int = 12): Response<List<com.fpclient.android.data.dto.ActivitySummaryPeriodDto>>
 
-    @GET("api/analytics/summaries/yearly")
+    @GET("api/web/analytics/summaries/yearly")
     suspend fun yearlySummaries(@Query("years") years: Int = 5): Response<List<com.fpclient.android.data.dto.ActivitySummaryPeriodDto>>
 
     // ------------------------------------------------------------------
     // Notifications
     // ------------------------------------------------------------------
 
-    @GET("api/notifications")
+    @GET("api/web/notifications")
     suspend fun notifications(@Query("page") page: Int = 0, @Query("size") size: Int = 30): Response<PageEnvelopeNotificationDto>
 
-    @GET("api/notifications/unread")
+    @GET("api/web/notifications/unread")
     suspend fun unreadNotifications(): Response<List<NotificationDto>>
 
-    @GET("api/notifications/unread/count")
+    @GET("api/web/notifications/unread/count")
     suspend fun unreadCount(): Response<UnreadCountDto>
 
-    @PUT("api/notifications/{notificationId}/read")
+    @PUT("api/web/notifications/{notificationId}/read")
     suspend fun markNotificationRead(@Path("notificationId") notificationId: String): Response<Unit>
 
-    @PUT("api/notifications/read-all")
+    @PUT("api/web/notifications/read-all")
     suspend fun markAllNotificationsRead(): Response<Unit>
 
-    @DELETE("api/notifications/{notificationId}")
+    @DELETE("api/web/notifications/{notificationId}")
     suspend fun deleteNotification(@Path("notificationId") notificationId: String): Response<Unit>
 
     // ------------------------------------------------------------------
     // Privacy zones
     // ------------------------------------------------------------------
 
-    @GET("api/privacy-zones")
+    @GET("api/web/privacy-zones")
     suspend fun privacyZones(): Response<List<PrivacyZoneDto>>
 
-    @POST("api/privacy-zones")
+    @POST("api/web/privacy-zones")
     suspend fun createPrivacyZone(@Body request: PrivacyZoneCreateRequest): Response<PrivacyZoneDto>
 
-    @PUT("api/privacy-zones/{zoneId}")
+    @PUT("api/web/privacy-zones/{zoneId}")
     suspend fun updatePrivacyZone(@Path("zoneId") zoneId: String, @Body request: PrivacyZoneUpdateRequest): Response<PrivacyZoneDto>
 
-    @PATCH("api/privacy-zones/{zoneId}/toggle")
+    @PATCH("api/web/privacy-zones/{zoneId}/toggle")
     suspend fun togglePrivacyZone(@Path("zoneId") zoneId: String): Response<PrivacyZoneDto>
 
-    @DELETE("api/privacy-zones/{zoneId}")
+    @DELETE("api/web/privacy-zones/{zoneId}")
     suspend fun deletePrivacyZone(@Path("zoneId") zoneId: String): Response<Unit>
 
     // ------------------------------------------------------------------
     // Heatmap
     // ------------------------------------------------------------------
 
-    @GET("api/heatmap/me")
+    @GET("api/web/heatmap/me")
     suspend fun myHeatmap(): Response<HeatmapResponse>
 
-    @GET("api/heatmap/user/{username}")
+    @GET("api/web/heatmap/user/{username}")
     suspend fun userHeatmap(@Path("username") username: String): Response<HeatmapResponse>
 
-    @POST("api/heatmap/me/rebuild")
+    @POST("api/web/heatmap/me/rebuild")
     suspend fun rebuildHeatmap(): Response<Unit>
 
     // ------------------------------------------------------------------
@@ -362,22 +360,22 @@ interface FitPubApi {
     // ------------------------------------------------------------------
 
     @Multipart
-    @POST("api/batch-import/upload")
+    @POST("api/web/batch-import/upload")
     suspend fun batchImport(@Part file: MultipartBody.Part): Response<BatchImportJobDto>
 
-    @GET("api/batch-import/jobs/{jobId}/status")
+    @GET("api/web/batch-import/jobs/{jobId}/status")
     suspend fun batchImportStatus(@Path("jobId") jobId: String): Response<BatchImportJobDto>
 
-    @GET("api/batch-import/jobs")
+    @GET("api/web/batch-import/jobs")
     suspend fun batchImportJobs(@Query("page") page: Int = 0, @Query("size") size: Int = 20): Response<BatchImportJobPageDto>
 
-    @DELETE("api/batch-import/jobs/{jobId}")
+    @DELETE("api/web/batch-import/jobs/{jobId}")
     suspend fun deleteBatchImport(@Path("jobId") jobId: String): Response<Unit>
 
     // ------------------------------------------------------------------
     // Push
     // ------------------------------------------------------------------
 
-        @GET("api/push/vapid-key")
+        @GET("api/web/push/vapid-key")
     suspend fun vapidKey(): Response<VapidKeyResponse>
 }
