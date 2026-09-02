@@ -38,7 +38,6 @@ import com.fpclient.android.data.dto.ActivityUpdateRequest
 import com.fpclient.android.data.dto.CommentDto
 import com.fpclient.android.data.dto.LikeDto
 import com.fpclient.android.data.dto.ReactionPalette
-import com.fpclient.android.data.dto.TrackFeatureCollectionDto
 import com.fpclient.android.data.network.ApiResult
 import com.fpclient.android.util.TrackParser
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,7 +55,6 @@ class ActivityDetailViewModel(
         val loading: Boolean = false,
         val error: String? = null,
         val activity: com.fpclient.android.data.dto.ActivityDto? = null,
-        val track: TrackFeatureCollectionDto? = null,
         val likes: List<LikeDto> = emptyList(),
         val comments: List<CommentDto> = emptyList(),
         /** Follow relationship with the activity's owner; null for own activities or while loading. */
@@ -75,9 +73,8 @@ class ActivityDetailViewModel(
         viewModelScope.launch {
             _ui.value = _ui.value.copy(loading = true, error = null)
             when (val r = activities.detail(activityId)) {
-                is ApiResult.Success -> {
+            is ApiResult.Success -> {
                     _ui.value = _ui.value.copy(loading = false, activity = r.data)
-                    loadTrack(activityId)
                     loadComments(activityId)
                     loadLikes(activityId)
                     loadFollowStatus()
@@ -113,7 +110,7 @@ class ActivityDetailViewModel(
                 users.follow(owner)
             }
             when (result) {
-                is ApiResult.Success -> {
+            is ApiResult.Success -> {
                     // Re-fetch authoritative state instead of guessing flags client-side.
                     when (val f = users.followStatus(owner)) {
                         is ApiResult.Success -> _ui.value = _ui.value.copy(followStatus = f.data, followBusy = false)
@@ -122,14 +119,6 @@ class ActivityDetailViewModel(
                 }
                 is ApiResult.Error -> _ui.value = _ui.value.copy(followBusy = false, error = result.message)
             }
-        }
-    }
-
-    private suspend fun loadTrack(id: String) {
-        if (_ui.value.activity?.hasGpsTrack != true) return
-        when (val t = activities.track(id)) {
-            is ApiResult.Success -> _ui.value = _ui.value.copy(track = t.data)
-            else -> Unit
         }
     }
 
@@ -193,9 +182,11 @@ class ActivityDetailViewModel(
         }
     }
 
-    /** Parsed polyline segments for the map (high-res preferred). */
+        /** Parsed polyline segments for the map, sourced from the activity's embedded simplified track. */
     fun trackSegments(): List<List<org.osmdroid.util.GeoPoint>> =
-        TrackParser.fromFeatureCollection(_ui.value.track)
+        _ui.value.activity?.let {
+            TrackParser.fromGeometry(it.simplifiedTrack?.type, it.simplifiedTrack?.coordinates)
+        } ?: emptyList()
 
     companion object {
         fun factory(container: AppContainer, appViewModel: com.fpclient.android.ui.AppViewModel): ViewModelProvider.Factory = viewModelFactory {

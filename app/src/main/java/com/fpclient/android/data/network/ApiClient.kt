@@ -9,7 +9,9 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
@@ -20,7 +22,10 @@ import okhttp3.MediaType.Companion.toMediaType
  * Builds and owns the Retrofit [FitPubApi]. Two interceptors make the client work with
  * arbitrary FitPub instances:
  *  - A base-URL interceptor rewrites every request to the user's configured server.
- *  - An auth interceptor attaches `Authorization: Bearer <token>` when logged in.
+ *  - A session interceptor authenticates via the `JWT_TOKEN` cookie the server sets (since
+ *    FitPub 1.3 the JWT is neither in the response body nor accepted as a Bearer header)
+ *    and echoes the `XSRF-TOKEN` cookie plus `X-XSRF-TOKEN` header Spring's CSRF
+ *    protection requires on every mutating call.
  */
 class ApiClient(
     context: Context,
@@ -38,43 +43,112 @@ class ApiClient(
     private fun resolveUrl(rawUrl: String): String =
         rawUrl.ifBlank { "https://fitpub.invalid" }
 
+    /** Reads the current session and rewrites the outgoing URL + (re)attaches the session
+     * JWT cookie and CSRF token. Also captures the latest `XSRF-TOKEN` from each response so
+     * the next mutating call is allowed through. */
+    private val sessionInterceptor = Interceptor { chain ->
+        val session: Session = withSession()
+        val original = chain.request()
+        val originalUrl = original.url
+        val base = resolveUrl(session.serverUrl).toHttpUrlOrNull() ?: originalUrl
+
+        val newUrl: HttpUrl = originalUrl.newBuilder()
+            .scheme(base.scheme)
+            .host(base.host)
+            .port(base.port)
+            .build()
+
+        val method = original.method
+        val mutating = method == "POST" || method == "PUT" || method == "PATCH" || method == "DELETE"
+
+        // Mutating requests need a CSRF token; prime one with a throwaway GET if the jar is empty.
+        var token = csrfToken
+        if (token == null && mutating) {
+            token = primeCsrfToken(base)
+            if (token != null) csrfToken = token
+        }
+
+        val builder = original.newBuilder()
+            .url(newUrl)
+            .header("Accept", "application/json")
+            .header("User-Agent", "FP-Client/${BuildConfig.VERSION_NAME}")
+
+        val cookieParts = mutableListOf<String>()
+        if (session.isLoggedIn) cookieParts += "JWT_TOKEN=${session.token}"
+        if (token != null) {
+            cookieParts += "XSRF-TOKEN=$token"
+            if (mutating) builder.header("X-XSRF-TOKEN", token)
+        }
+        if (cookieParts.isNotEmpty()) {
+            builder.header("Cookie", cookieParts.joinToString("; "))
+        }
+
+        val response = chain.proceed(builder.build())
+        response.headers.values("Set-Cookie").forEach { raw ->
+            val (name, value) = parseCookie(raw) ?: return@forEach
+            if (name == "XSRF-TOKEN" && value.isNotBlank()) csrfToken = value
+        }
+        response
+    }
+
+    /** Plain client with no interceptors — used only for the CSRF priming GET so it can't recurse. */
+    private val plainClient: OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
+        .build()
+
     private val client: OkHttpClient = run {
         val logging = HttpLoggingInterceptor().apply {
             level = if (isDebug) HttpLoggingInterceptor.Level.BASIC
             else HttpLoggingInterceptor.Level.NONE
         }
-
         OkHttpClient.Builder()
-            .addInterceptor { chain ->
-                // Read the current session on each request so base/token changes are
-                // picked up without rebuilding the client.
-                val session: Session = withSession()
-                val original = chain.request()
-                val originalUrl = original.url
-
-                val base = resolveUrl(session.serverUrl).toHttpUrlOrNull() ?: originalUrl
-                val newUrl: HttpUrl = originalUrl.newBuilder()
-                    .scheme(base.scheme)
-                    .host(base.host)
-                    .port(base.port)
-                    .build()
-
-                val builder = original.newBuilder()
-                    .url(newUrl)
-                    .header("Accept", "application/json")
-                    .header("User-Agent", "FP-Client/${BuildConfig.VERSION_NAME}")
-
-                if (session.isLoggedIn) {
-                    builder.header("Authorization", "Bearer ${session.token}")
-                }
-
-                chain.proceed(builder.build())
-            }
+            .addInterceptor(sessionInterceptor)
             .addInterceptor(logging)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
             .build()
+    }
+
+    /** Issues a throwaway GET against the anonymous registration-status endpoint just to
+     * mint an `XSRF-TOKEN` cookie that the caller can echo back on a mutating request. */
+    private fun primeCsrfToken(base: HttpUrl): String? {
+        val url = base.newBuilder()
+            .addPathSegment("api")
+            .addPathSegment("web")
+            .addPathSegment("auth")
+            .addPathSegment("registration-status")
+            .build()
+        val request = Request.Builder()
+            .url(url)
+            .header("Accept", "application/json")
+            .header("User-Agent", "FP-Client/${BuildConfig.VERSION_NAME}")
+            .get()
+            .build()
+        var found: String? = null
+        try {
+            plainClient.newCall(request).execute().use { resp ->
+                resp.headers.values("Set-Cookie").forEach { raw ->
+                    val (name, value) = parseCookie(raw) ?: return@forEach
+                    if (name == "XSRF-TOKEN" && value.isNotBlank()) found = value
+                }
+            }
+        } catch (_: Exception) {
+            // CSRF priming is best-effort; failures surface as normal API errors.
+        }
+        return found
+    }
+
+    private fun parseCookie(setCookie: String): Pair<String, String>? {
+        val eq = setCookie.indexOf('=')
+        if (eq < 0) return null
+        val name = setCookie.substring(0, eq).trim()
+        val rest = setCookie.substring(eq + 1)
+        val end = rest.indexOf(';')
+        val value = if (end >= 0) rest.substring(0, end) else rest
+        return name to value
     }
 
     private fun withSession(): Session = runBlocking { sessionStore.session.first() }
@@ -90,4 +164,8 @@ class ApiClient(
     }
 
     private val isDebug: Boolean get() = BuildConfig.DEBUG
+
+    private companion object {
+        @Volatile private var csrfToken: String? = null
+    }
 }

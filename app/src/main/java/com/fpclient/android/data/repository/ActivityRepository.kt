@@ -12,7 +12,6 @@ import com.fpclient.android.data.dto.ManualActivityRequest
 import com.fpclient.android.data.dto.PageEnvelopeActivitySummaryDto
 import com.fpclient.android.data.dto.PageEnvelopeCommentDto
 import com.fpclient.android.data.dto.ReactionRequest
-import com.fpclient.android.data.dto.TrackFeatureCollectionDto
 import com.fpclient.android.data.network.ApiResult
 import com.fpclient.android.data.network.ErrorMessages
 import com.fpclient.android.data.network.FitPubApi
@@ -67,18 +66,6 @@ class ActivityRepository(
                 return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
             }
             ApiResult.Success(response.body() ?: PageEnvelopeActivitySummaryDto())
-        } catch (e: Exception) {
-            ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
-        }
-    }
-
-    suspend fun track(id: String): ApiResult<TrackFeatureCollectionDto> {
-        return try {
-            val response = api.activityTrack(id)
-            if (!response.isSuccessful) {
-                return ApiResult.Error(ErrorMessages.extract(response.errorBody()?.string()), response.code())
-            }
-            ApiResult.Success(response.body() ?: TrackFeatureCollectionDto())
         } catch (e: Exception) {
             ApiResult.Error(ErrorMessages.fromThrowable(e), throwable = e)
         }

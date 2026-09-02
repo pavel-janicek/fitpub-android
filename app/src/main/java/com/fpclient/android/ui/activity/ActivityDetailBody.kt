@@ -68,7 +68,7 @@ internal fun DetailBody(
                 ),
             )
         }
-        item { TrackMap(segments = viewModel.trackSegments(), hasTrack = ui.track != null) }
+        item { TrackMap(segments = viewModel.trackSegments(), hasTrack = ui.activity?.simplifiedTrack != null) }
         item { ReactionRow(activityId = activityId, viewModel = viewModel, ui = ui) }
         item { CommentComposer(activityId = activityId, viewModel = viewModel) }
     }
